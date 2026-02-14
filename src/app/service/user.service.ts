@@ -7,7 +7,7 @@ import {BehaviorSubject} from 'rxjs';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {APP_CONFIG} from '../../environments/environment';
-import {UnixTime} from '../library/utility';
+import {UnixTime, Utility} from '../library/utility';
 import {ConnectionState, ConnectionStateService} from './connection-state.service';
 import {ErrorHandlingUtil} from './error-handling-util';
 
@@ -143,7 +143,7 @@ export class UserService {
   async login(username: string, password: string) {
     return this.server.auth.login({
       username,
-      password,
+      password: Utility.passwordHash(password),
       type: AccountLoginType.Email,
     })
       .then((res) => {
@@ -151,7 +151,7 @@ export class UserService {
         this.setLogin(res.account, res.authorization.token, res.authorization.expireAt, res.vip, res.storage);
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '登录失败');
+        // this.errorHandlingUtil.handleManualError(err, '登录失败');
         throw err;
       });
   }

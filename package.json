@@ -6,7 +6,7 @@
     "start:electron": "npm run build:electron && electron . --serve",
     "ng:serve": "ng serve",
     "electron:serve": "wait-on tcp:4200 && npm run build:electron && electron . --serve",
-    "build:angular": "ng build --base-href ./",
+    "build:angular": "ng build --base-href ./ --configuration production",
     "build:electron": "tsc --project tsconfig.electron.json",
     "build:package": "electron-forge package",
     "build:updater": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe /out:updater.exe scripts\\updater.cs",

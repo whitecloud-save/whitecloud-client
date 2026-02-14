@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, ErrorHandler, inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {NZ_MODAL_DATA, NzModalRef} from 'ng-zorro-antd/modal';
 import {ServerService} from '../../../service/server/server.service';
@@ -6,6 +6,7 @@ import {IReqRegister} from '../../../service/server/api';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {UserService} from '../../../service/user.service';
 import {DialogService} from '../../../service/dialog.service';
+import {Utility} from '../../../library/utility';
 import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 
 @Component({
@@ -42,7 +43,8 @@ export class UserLoginRegisterComponent {
     public userService: UserService,
     public messageService: NzMessageService,
     public dialogService: DialogService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
+    // private errorHandlingUtil: ErrorHandlingUtil,
   ) {
     switch (this.nzModalData.mode) {
       case 'login':
@@ -76,13 +78,18 @@ export class UserLoginRegisterComponent {
     if (!this.registerForm.valid)
       return;
 
-    this.server.auth.register(this.registerForm.value as IReqRegister)
+    const formValue = this.registerForm.value as IReqRegister;
+    this.server.auth.register({
+      ...formValue,
+      password: Utility.passwordHash(formValue.password),
+    })
       .then(() => {
         this.messageService.success('注册成功');
         this.mode = 0;
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '注册失败');
+        this.errorHandler.handleError(err);
+        // this.errorHandlingUtil.handleManualError(err, '注册失败');
       });
   }
 

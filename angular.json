@@ -46,7 +46,13 @@
             "production": {
               "optimization": false,
               "extractLicenses": false,
-              "outputHashing": "none"
+              "outputHashing": "none",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,

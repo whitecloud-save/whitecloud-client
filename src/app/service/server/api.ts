@@ -86,6 +86,7 @@ export declare class UserGame {
     enableCloudSave: boolean;
     updateTime: number;
     order: number;
+    deleted: boolean;
 }
 export declare class UserGameSave {
     saveId: string;
@@ -343,7 +344,7 @@ export declare class BusinessHandler {
     }>;
     fetchUserGame(body: void): Promise<UserGame[]>;
     removeGame(body: IReqRemoveGame): Promise<{}>;
-    fetGameSave(body: IReqFetchGameSave): Promise<UserGameSave[]>;
+    fetchGameSave(body: IReqFetchGameSave): Promise<UserGameSave[]>;
     syncGameSave(body: IReqSyncGameSave): Promise<{}>;
     deleteGameSave(body: IReqDeleteGameSave): Promise<{}>;
     clearGameSaves(body: IReqClearGameSaves): Promise<{}>;

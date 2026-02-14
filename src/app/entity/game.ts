@@ -140,7 +140,7 @@ export class Game {
 
   async syncSaveList() {
     if (this.userService_.isOnline()) {
-      const list = await this.serverService_.business.fetGameSave({
+      const list = await this.serverService_.business.fetchGameSave({
         gameId: this.id,
       });
       for (const save of list) {

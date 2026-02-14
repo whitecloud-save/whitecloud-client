@@ -153,6 +153,14 @@ export class GameService {
     }
 
     for (const data of list) {
+      if (data.deleted) {
+        const game = this.getGame(data.gameId);
+        if (game) {
+          this.removeLocalGame(game);
+        }
+        continue;
+      }
+
       const game = this.getGame(data.gameId);
       if (!game) {
         const remoteGame = this.getRemoteGame(data.gameId);

@@ -147,6 +147,12 @@ class Utility {
     return hash.digest('hex').slice(0, 10);
   }
 
+  static passwordHash(password: string) {
+    const hash = createHash('sha256');
+    hash.update(password);
+    return hash.digest('hex');
+  }
+
   static async readdir(filePath: string, prefix = '') {
     const result: string[] = [];
     const files = await fs.readdir(filePath);
