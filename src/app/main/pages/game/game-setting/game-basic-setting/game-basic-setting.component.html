@@ -1,0 +1,58 @@
+<form nz-form nzLabelAlign="left" [formGroup]="basicForm" >
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="name">游戏名称</nz-form-label>
+    <nz-form-control [nzSpan]="16" nzErrorTip="必须填写游戏名称">
+      <input nz-input formControlName="name"/>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="gamePath">游戏文件夹</nz-form-label>
+    <nz-form-control [nzSpan]="16" nzErrorTip="文件夹未设置或不存在">
+      <div nz-flex nzAlign="center" style="width: 100%">
+        <div style="flex: 1; margin-right: 5px;">
+          <input nz-input formControlName="gamePath"/>
+        </div>
+        <div>
+          <button nz-button (click)="openGamePathDialog()">
+            <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="savePath">存档文件夹</nz-form-label>
+    <nz-form-control [nzSpan]="16" nzErrorTip="文件夹未设置或不存在">
+      <div nz-flex nzAlign="center" style="width: 100%">
+        <div style="flex: 1; margin-right: 5px;">
+          <input nz-input formControlName="savePath"/>
+        </div>
+        <div>
+          <button nz-button (click)="openSavePathDialog()">
+            <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="exeFile">游戏启动文件</nz-form-label>
+    <nz-form-control [nzSpan]="8">
+      <nz-select formControlName="exeFile">
+        <nz-option *ngFor="let exe of exeSelections" [nzValue]="exe" [nzLabel]="exe"></nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="coverImgUrl">游戏封面</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <app-game-cover-input [searchKeyword]="game.name" [gameId]="game.id" formControlName="coverImgUrl"></app-game-cover-input>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="autoOpenGuide">启动时打开攻略</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <label nz-checkbox formControlName="autoOpenGuide"></label>
+    </nz-form-control>
+  </nz-form-item>
+</form>

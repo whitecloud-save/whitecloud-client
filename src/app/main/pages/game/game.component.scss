@@ -1,0 +1,49 @@
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.game-decorate-container {
+  width: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-decorate-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  animation: slideInFromRight 0.5s ease-out forwards;
+  z-index: 1;
+}
+
+.game-decorate-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  z-index: 2;
+}
+
+.save-size-exceeded-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #fffbe6;
+  border-bottom: 1px solid #ffe58f;
+  color: #d48806;
+}

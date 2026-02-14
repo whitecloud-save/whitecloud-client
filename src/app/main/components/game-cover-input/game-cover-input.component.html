@@ -1,0 +1,13 @@
+<div style="cursor: pointer; width: 50px;" (click)="openImageSelectDialog()">
+  @if(cacheImage && value && (cacheImage.url | async)) {
+    <div class="game-cover" [ngStyle]="{'background-image': 'url(' + (cacheImage.url | async) + ')'}"></div>
+  } @else {
+    <img nz-image width="50px" height="50px" [nzSrc]="fallback" alt="" [nzDisablePreview]="true"/>
+  }
+</div>
+
+<nz-modal [(nzVisible)]="isVisible" nzTitle="选择游戏封面" (nzOnCancel)="isVisible = false" (nzOnOk)="confirm()" [nzOkDisabled]="!cacheUrl">
+  <ng-container *nzModalContent>
+    <app-image-selector [searchKeyWord]="searchKeyword" [(ngModel)]="cacheUrl"></app-image-selector>
+  </ng-container>
+</nz-modal>

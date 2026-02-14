@@ -1,0 +1,41 @@
+<p>请选择《{{nzModalData.game.name}}》启动文件 {{nzModalData.game.exePath}} 文件位置</p>
+<form nz-form nzLayout="vertical" [formGroup]="gameForm" >
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="exePath">启动文件</nz-form-label>
+    <nz-form-control [nzSpan]="20">
+      <div nz-flex nzAlign="center" style="width: 100%">
+        <div style="flex: 1; margin-right: 5px;">
+          <input nz-input formControlName="exePath"/>
+        </div>
+        <div>
+          <button nz-button (click)="openGamePathDialog()">
+            <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+
+  @if(!nzModalData.game.savePath) {
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6" nzFor="savePath">存档文件夹</nz-form-label>
+      <nz-form-control [nzSpan]="20">
+        <div nz-flex nzAlign="center" style="width: 100%">
+          <div style="flex: 1; margin-right: 5px;">
+            <input nz-input formControlName="savePath"/>
+          </div>
+          <div>
+            <button nz-button (click)="openSavePathDialog()">
+              <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+            </button>
+          </div>
+        </div>
+      </nz-form-control>
+    </nz-form-item>
+  }
+</form>
+
+<div *nzModalFooter>
+  <button nz-button nzType="default" (click)="ref.close()">取消</button>
+  <button nz-button nzType="primary" [disabled]="gameForm.invalid" (click)="submit()">同步</button>
+</div>

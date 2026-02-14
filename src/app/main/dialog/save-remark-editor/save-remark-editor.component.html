@@ -1,0 +1,20 @@
+<form nz-form [formGroup]="remarkForm" (ngSubmit)="submitRemarkForm()">
+  <nz-form-item>
+    <nz-form-label
+      [nzSm]="6"
+      [nzXs]="24"
+      nzFor="remark"
+      nzRequired
+    >
+      <span>名称</span>
+    </nz-form-label>
+    <nz-form-control [nzSm]="14" [nzXs]="24">
+      <input nz-input id="remark" formControlName="remark" />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item nz-row>
+    <nz-form-control [nzSpan]="14" [nzOffset]="6">
+      <button nz-button nzType="primary" [disabled]="remarkForm.invalid">确定</button>
+    </nz-form-control>
+  </nz-form-item>
+</form>

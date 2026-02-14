@@ -1,0 +1,20 @@
+<a class="container" (click)="navigate()" (contextmenu)="openGameContextMenu()">
+  @if((game.cachedCoverImgUrl | async)) {
+    <div class="game-cover" [ngStyle]="{'background-image': 'url(' + (game.cachedCoverImgUrl | async) + ')'}">
+      <app-game-state [state]="game.state | async" [isNet]="userService.logged | async"></app-game-state>
+      <div class="game-title">
+        <span>{{game.name}}</span>
+      </div>
+    </div>
+  }
+  @if(!(game.cachedCoverImgUrl | async)){
+    <div class="game-cover" style="background-color: rgb(245, 245, 245);">
+      <div class="loading">
+        <nz-spin nzSimple nzSize="large"></nz-spin>
+      </div>
+      <div class="game-title">
+        <span>{{game.name}}</span>
+      </div>
+    </div>
+  }
+</a>

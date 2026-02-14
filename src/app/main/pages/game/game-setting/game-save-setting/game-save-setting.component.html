@@ -1,0 +1,77 @@
+<form nz-form nzLabelAlign="left" [formGroup]="saveForm" >
+  <nz-form-item>
+    <nz-form-label nzTooltipTitle="开启后会在每次备份存档时清理多余本地备份文件以减少空间占用，被收藏的存档不会被清理，也不计入保留数量" [nzSpan]="6" nzFor="autoClearLocalSave">
+      自动清理本地备份
+    </nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <label nz-checkbox formControlName="autoClearLocalSave"></label>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="localSaveNum">本地存档保留数量</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <nz-row>
+        <nz-col nzSpan="12">
+          <nz-slider nzTooltipVisible="never" [nzMin]="1" [nzMax]="20" formControlName="localSaveNum"></nz-slider>
+        </nz-col>
+        <div nz-col nzSpan="4" style="margin-left: 8px; position: relative; top: 5px">
+          {{saveForm.value.localSaveNum}}
+        </div>
+      </nz-row>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label nzTooltipTitle="开启后使用游戏设置的备份上限，关闭时使用全局设置（当前：{{settingService.globalSaveBackupLimit}}MB）" [nzSpan]="6" nzFor="useCustomSaveBackupLimit">
+      自定义备份上限
+    </nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <label nz-checkbox formControlName="useCustomSaveBackupLimit"></label>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="saveBackupLimit">备份上限</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <nz-row>
+        <nz-col nzSpan="12">
+          <nz-slider nzTooltipVisible="never" [nzMin]="10" [nzMax]="100" [nzStep]="10" formControlName="saveBackupLimit"></nz-slider>
+        </nz-col>
+        <div nz-col nzSpan="4" style="margin-left: 8px; position: relative; top: 5px">
+          {{saveForm.value.saveBackupLimit}}MB
+        </div>
+      </nz-row>
+    </nz-form-control>
+  </nz-form-item>
+</form>
+
+@if(userService.logged | async) {
+  <from nz-form nzLabelAlign="left" [formGroup]="serverForm">
+    <nz-form-item>
+      <nz-form-label nzTooltipTitle="开启后存档备份会自动同步到云端" [nzSpan]="6" nzFor="enableCloudSave">
+        云端同步存档
+      </nz-form-label>
+      <nz-form-control [nzSpan]="16">
+        <label nz-checkbox formControlName="enableCloudSave"></label>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">云端存档占用空间</nz-form-label>
+      <nz-form-control [nzSpan]="16">
+        {{cloudSaveSize | fileSize}}
+        <button nz-button nzType="link" nzDanger (click)="clearCloudSaves()">清空</button>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label nzTooltipTitle="当下一次上传时自动清理，被收藏的存档不计入保留数量" [nzSpan]="6" nzFor="cloudSaveNum">云端存档保留数量</nz-form-label>
+      <nz-form-control [nzSpan]="16">
+        <nz-row>
+          <nz-col nzSpan="12">
+            <nz-slider nzTooltipVisible="never" [nzMin]="1" [nzMax]="20" formControlName="cloudSaveNum"></nz-slider>
+          </nz-col>
+          <div nz-col nzSpan="4" style="margin-left: 8px; position: relative; top: 5px">
+            {{serverForm.value.cloudSaveNum}}
+          </div>
+        </nz-row>
+      </nz-form-control>
+    </nz-form-item>
+  </from>
+}

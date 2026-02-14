@@ -1,0 +1,14 @@
+<div style="width: 100%; padding-bottom: 20px">
+  <nz-divider nzOrientation="left" nzText="基础设置" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-game-basic-setting [game]="(gamePageService.game | async)!"></app-game-basic-setting>
+  </div>
+  <nz-divider nzOrientation="left" nzText="存档设置" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-game-save-setting [game]="(gamePageService.game | async)!"></app-game-save-setting>
+  </div>
+  <nz-divider nzOrientation="left" nzText="高级设置" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-game-advanced-setting [game]="(gamePageService.game | async)!"></app-game-advanced-setting>
+  </div>
+</div>

@@ -1,0 +1,85 @@
+nz-layout {
+  height: 100%;
+}
+
+.logo {
+  height: 64px;
+
+  display: flex;
+  justify-self: flex-start;
+  align-items: center;
+  padding-left: 24px;
+  color: #fff;
+  font-size: 26px;
+
+  img {
+    height: 65%;
+    margin-right: 25px;
+  }
+}
+
+nz-header {
+  background: #fff;
+  padding: 0;
+  width: 100%;
+}
+
+nz-content {
+  margin: 0 16px;
+}
+
+nz-breadcrumb {
+  margin: 16px 0;
+}
+
+.inner-content {
+  padding: 24px;
+  background: #fff;
+  min-height: 360px;
+}
+
+nz-footer {
+  text-align: center;
+}
+
+.user-profile {
+  margin-right: 20px;
+}
+
+.user-profile-header {
+  width: 250px;
+  padding: 1rem 0.75rem;
+  background-color: #1890ff;
+  color: white;
+  font-weight: 400;
+  font-size: 18px;
+
+  nz-avatar {
+    color: #1890ff;
+    background-color: white;
+    margin-right: 10px;
+  }
+}
+
+.user-profile-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.6rem 0.5rem;
+  background-color: #f2f2f2;
+}
+// nz-sider {
+//   ul {
+//     li {
+//       padding-top: 8px;
+//       padding-bottom: 8px;
+//       padding-left: 40px;
+//       margin-bottom: 8px;
+
+//       line-height: 32px;
+
+//       &:first-child {
+//         margin-top: 0;
+//       }
+//     }
+//   }
+// }

@@ -1,0 +1,29 @@
+<form nz-form nzLabelAlign="left" [formGroup]="basicForm">
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="openWithSystem">开机自动启动</nz-form-label>
+    <nz-form-control [nzSpan]="14">
+      <label nz-checkbox formControlName="openWithSystem"></label>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="globalSaveBackupLimit" nzTooltipTitle="游戏存档原始体积超过该设置值的游戏将不会进行自动本地存档备份（手动备份不受影响）">本地存档备份上限</nz-form-label>
+    <nz-form-control [nzSpan]="14">
+      <nz-slider formControlName="globalSaveBackupLimit" [nzMin]="10" [nzMax]="100" [nzStep]="10" [nzMarks]="sliderMarks"></nz-slider>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="openWithSystem">当前版本</nz-form-label>
+    <nz-form-control [nzSpan]="14">
+      {{version}}
+      @if (updateService.currentState === UpdateState.Idle) {
+        <button nz-button nzType="link" (click)="checkForUpdates()">检查更新</button>
+      } @else if (updateService.currentState === UpdateState.Checking) {
+        <button nz-button nzType="link" [disabled]="true">正在检查更新</button>
+      } @else if (updateService.currentState === UpdateState.Downloading) {
+        <button nz-button nzType="link" [disabled]="true">正在下载更新</button>
+      } @else if (updateService.currentState === UpdateState.ReadyToInstall) {
+        <button nz-button nzType="link" (click)="confirmInstallUpdate()">更新已准备就绪</button>
+      }
+    </nz-form-control>
+  </nz-form-item>
+</form>

@@ -1,0 +1,16 @@
+<form nz-form nzLabelAlign="left" [formGroup]="basicForm" >
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="LEProfile" [nzTooltipTitle]="LETooltips">
+      Local Emulator设置
+    </nz-form-label>
+    <nz-form-control [nzSpan]="16" >
+      <nz-select formControlName="LEProfile">
+        <nz-option [nzValue]="''" nzLabel="不使用"></nz-option>
+        @for(options of settingService.LEProfileSelections | async; track options.value) {
+          <nz-option [nzValue]="options.value" [nzLabel]="options.label"></nz-option>
+        }
+      </nz-select>
+      <!-- <label nz-checkbox formControlName="LEProfile"></label> -->
+    </nz-form-control>
+  </nz-form-item>
+</form>

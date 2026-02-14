@@ -1,0 +1,28 @@
+<div style="width: 100%; padding-bottom: 20px">
+  <nz-divider nzOrientation="left" nzText="用户" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-user-setting></app-user-setting>
+  </div>
+  <nz-divider nzOrientation="left" nzText="基础设置" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-basic-setting></app-basic-setting>
+  </div>
+  <nz-divider nzOrientation="left" nzText="高级设置" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px;">
+    <app-advanced-setting></app-advanced-setting>
+  </div>
+  <nz-divider nzOrientation="left" nzText="联系我" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+  <div style="width: 100%; background-color: white; padding: 20px; padding-left: 40px;">
+    <nz-space>
+      <button *nzSpaceItem nz-button nzType="default" nzShape="circle" (click)="openWebsite()">
+        <fa-icon [icon]="iconService.solid.faLink"></fa-icon>
+      </button>
+      <button *nzSpaceItem nz-button nzType="default" nzShape="circle" (click)="openQQ()">
+        <fa-icon [icon]="iconService.brands.faQq"></fa-icon>
+      </button>
+      <button *nzSpaceItem nz-button nzType="default" nzShape="circle" (click)="openGithub()">
+        <fa-icon [icon]="iconService.brands.faGithub"></fa-icon>
+      </button>
+    </nz-space>
+  </div>
+</div>

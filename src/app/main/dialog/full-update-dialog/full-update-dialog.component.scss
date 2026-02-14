@@ -1,0 +1,33 @@
+.full-update-dialog {
+  text-align: center;
+  padding: 20px 0;
+
+  .update-icon {
+    font-size: 48px;
+    color: #1890ff;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .version-info {
+    color: #1890ff;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .update-desc {
+    color: #666;
+    margin-bottom: 24px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+}

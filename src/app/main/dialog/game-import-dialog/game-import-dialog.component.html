@@ -1,0 +1,31 @@
+<div>
+  <ng-container *ngIf="gameImportService.step === gameImportService.GameImportStep.SelectGameDir">
+    <app-game-folder-selector (open)="gameImportService.selectGamePath($event)"></app-game-folder-selector>
+  </ng-container>
+  <ng-container *ngIf="gameImportService.step === gameImportService.GameImportStep.SetGameExePath">
+    <app-game-exe-selector></app-game-exe-selector>
+  </ng-container>
+  <ng-container *ngIf="gameImportService.step === gameImportService.GameImportStep.DetailSetting">
+    <app-game-detail-form></app-game-detail-form>
+  </ng-container>
+  <ng-container *ngIf="gameImportService.step === gameImportService.GameImportStep.CoverSetting">
+    <app-game-cover-form></app-game-cover-form>
+  </ng-container>
+</div>
+
+<div *nzModalFooter>
+  <ng-container *ngIf="gameImportService.step == gameImportService.GameImportStep.SetGameExePath">
+    <button nz-button nzType="default" (click)="gameImportService.pre()">上一步</button>
+    <button nz-button nzType="primary" (click)="gameImportService.next()">下一步</button>
+  </ng-container>
+
+  <ng-container *ngIf="gameImportService.step == gameImportService.GameImportStep.DetailSetting">
+    <button nz-button nzType="default" (click)="gameImportService.pre()">上一步</button>
+    <button nz-button nzType="primary" (click)="gameImportService.next()" [disabled]="gameImportService.detailForm.invalid">下一步</button>
+  </ng-container>
+
+  <ng-container *ngIf="gameImportService.step == gameImportService.GameImportStep.CoverSetting">
+    <button nz-button nzType="default" (click)="gameImportService.pre()">上一步</button>
+    <button nz-button nzType="primary" [disabled]="gameImportService.coverForm.invalid" (click)="confirm()">确定</button>
+  </ng-container>
+</div>

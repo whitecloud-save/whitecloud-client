@@ -1,0 +1,91 @@
+<div #container style="height: 100%" class="table-container">
+  <nz-table
+      #dataTable
+      [nzLoading]="loading"
+      [nzData]="list"
+      [nzPageSize]="pageSize"
+      [nzFrontPagination]="true"
+      [nzShowPagination]="true"
+      [nzScroll]="{y: '0'}">
+    <thead>
+      <tr>
+        <th nzColumnKey="time" [nzSortFn]="saveSortFn" nzSortOrder="desc">存档名称</th>
+        <th nzColumnKey="host">存档主机</th>
+        <th nzColumnKey="host">备份大小</th>
+        <th nzColumnKey="state">状态</th>
+        <th nzColumnKey="operation" nzWidth="200px">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let data of dataTable.data">
+        <tr>
+          <td nzEllipsis>
+            <span [nz-tooltip]="data.remark ? data.remark : (data.createTime * 1000 | date: 'YYYY/MM/dd HH:mm:ss')">
+              @if(data.remark) {
+                {{data.remark}}
+              } @else {
+                {{data.createTime * 1000 | date: 'YYYY/MM/dd HH:mm:ss'}}
+              }
+            </span>
+          </td>
+          <td nzEllipsis>
+            {{data.hostname}}
+          </td>
+          <td>
+            {{data.size | fileSize}}
+          </td>
+          <td>
+            <app-game-save-state [state]="data.state"></app-game-save-state>
+          </td>
+          <td>
+            <nz-button-group>
+              @if(isLocal(data) && !data.onlyRemote) {
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="修改存档名称" (click)="editSave(data)">
+                  <fa-icon [icon]="iconService.light.faPen"></fa-icon>
+                </button>
+                @if(!isStateCurrent(data)) {
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="回滚到该存档" [disabled]="data.deleted" (click)="rollbackSave(data)">
+                    <fa-icon [icon]="iconService.light.faRotateRight"></fa-icon>
+                  </button>
+                }
+                <button nz-button nzType="default" nzSize="small" nz-tooltip [nzTooltipTitle]="collectSaveTooltip" [disabled]="data.deleted" (click)="starSave(data)">
+                  <fa-icon [icon]="iconService.light.faStar" *ngIf="!data.stared"></fa-icon>
+                  <fa-icon [icon]="iconService.solid.faStar" *ngIf="data.stared"></fa-icon>
+                </button>
+                @if(!data.ossPath && userService.isOnline()) {
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="上传存档" [disabled]="data.deleted || isTransferring" (click)="uploadSave(data)">
+                    <fa-icon [icon]="iconService.light.faUpload"></fa-icon>
+                  </button>
+                }
+                @if(!isStateCurrent(data)) {
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" [disabled]="data.deleted" (click)="deleteSave(data)">
+                    <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
+                  </button>
+                }
+              } @else {
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="下载存档" [disabled]="isTransferring" (click)="downloadSave(data)">
+                  <fa-icon [icon]="iconService.light.faDownload"></fa-icon>
+                </button>
+                @if(!isStateCurrent(data)) {
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" (click)="deleteRemoteSave(data)">
+                    <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
+                  </button>
+                }
+              }
+            </nz-button-group>
+          </td>
+        </tr>
+
+      </ng-container>
+    </tbody>
+  </nz-table>
+</div>
+
+<ng-template #collectSaveTooltip>
+  <div>
+    收藏存档
+  </div>
+  <div>
+    被收藏的存档不会被自动清理
+  </div>
+</ng-template>

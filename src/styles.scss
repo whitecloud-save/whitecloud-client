@@ -1,0 +1,100 @@
+/* You can add global styles to this file, and also import other style files */
+// @formatter:off
+:root {
+  // Generic
+  --padding-gutter: 1rem;
+  --padding: 1.5rem;
+  --padding-16: 1rem;
+  --padding-12: 0.75rem;
+  --padding-8: 0.5rem;
+  --padding-4: 0.25rem;
+
+  --color-primary: 92, 119, 255;
+  --color-primary-contrast: 255, 255, 255;
+
+  --color-accent: 255, 64, 129;
+  --color-accent-contrast: 255, 255, 255;
+
+  --color-warn: 244, 67, 54;
+  --color-warn-contrast: 255, 255, 255;
+
+  @screen lg {
+    --padding-gutter: 1.5rem;
+  };
+
+  // Background
+  --background-base: #f5f5f8;
+  --background-card: #fff;
+  --background-app-bar: #ebebee;
+  --background-hover: rgba(0, 0, 0, 0.04);
+
+  // scrollbar-gutter: stable;
+}
+
+.top-modal {
+  top: 0;
+}
+
+@mixin scrollbar() {
+  overflow: overlay;
+
+  &::-webkit-scrollbar {
+    height: 7px;
+    width: 7px
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: silver;
+    border-radius: 10px
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a7a7a7
+  }
+}
+
+.thin-scrollbar {
+  @include scrollbar();
+}
+
+.ant-table-body {
+  @include scrollbar();
+}
+
+@mixin blackScrollbar() {
+  overflow: overlay;
+
+  &::-webkit-scrollbar {
+    height: 7px;
+    width: 7px
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #001529;
+    border-radius: 10px
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ffffff65;
+    border-radius: 10px
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #ffffff84;
+  }
+}
+
+.black-thin-scrollbar {
+  @include blackScrollbar();
+}
+
+
+// .ant-btn:focus {
+//   color: unset;
+//   border-color: rgb(217, 217, 217);
+// }

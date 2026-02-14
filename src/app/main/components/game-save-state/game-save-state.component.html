@@ -1,0 +1,18 @@
+@switch (state) {
+  @case(SaveState.Current) {
+    <nz-tag nzColor="#87d068">当前</nz-tag>
+  }
+  @case(SaveState.LocalAndRemote) {
+    <nz-tag nzColor="#2db7f5">本地</nz-tag>
+  }
+  @case(SaveState.Local) {
+    <nz-tag nzColor="#108ee9">本地</nz-tag>
+  }
+  @case(SaveState.Remote) {
+    <nz-tag nzColor="#2db7f5">云端</nz-tag>
+  }
+  @case(SaveState.Deleted) {
+    <nz-tag>删除</nz-tag>
+  }
+}
+

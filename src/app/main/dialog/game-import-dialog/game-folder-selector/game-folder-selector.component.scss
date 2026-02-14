@@ -1,0 +1,23 @@
+.folder-selector {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  background: rgb(250, 250, 250);
+  border: 1px dashed rgb(217, 217, 217);
+
+  .selector-hint {
+    color: rgba(0, 0, 0, 0.45);
+  }
+
+  &:hover,&.active {
+    border-color: #40a9ff;
+    cursor: pointer;
+
+    .selector-hint {
+      color: #40a9ffa0;
+    }
+  }
+}

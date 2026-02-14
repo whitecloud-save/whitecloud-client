@@ -1,0 +1,46 @@
+<nz-layout>
+  <nz-sider nzCollapsible [nzTrigger]="null" nzWidth="240px">
+    <div class="logo">
+      <img src="./assets/logo.png">
+      Whitecloud
+    </div>
+    <div style="height: calc(100vh - 64px); overflow: hidden;">
+      <ul nz-menu nzMode="inline" nzTheme="dark" style="height: 100%;">
+        <li nz-menu-item routerLinkActive [nzMatchRouter]="true">
+          <a routerLink="/main/home">
+            首页
+          </a>
+        </li>
+        <li nz-submenu nzTitle="游戏库" routerLinkActive #uRla="routerLinkActive" [(nzOpen)]="mainNavService.gameNavOpen">
+          <ul class="black-thin-scrollbar" [ngStyle]="{'max-height': mainNavService.gameNavOpen ? 'calc(100vh - 205px)' : 'unset'}">
+            @for(game of (gameService.games | async); track game.id) {
+              <li nz-menu-item routerLinkActive [nzMatchRouter]="true" style="margin: 0; line-height: 35px; height: 35px; padding-left: 25px;" >
+                <a [routerLink]="'/main/game/' + game.id" style=" display: flex; align-items: center;">
+                  @if(game.iconPath) {
+                    <img [src]="game.iconPath" style="width: 18px; height: 18px; border-radius: 4px; margin-right: 10px;">
+                  } @else {
+                    <fa-icon [icon]="iconService.solid.faGamepad" style="width: 20px; text-align: center; margin-right: 10px;"></fa-icon>
+                  }
+                  <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="game.name">{{game.name}}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+        <li nz-menu-item routerLinkActive [nzMatchRouter]="true">
+          <a routerLink="/main/setting">
+            设置
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nz-sider>
+  <nz-layout>
+    <nz-header style="box-shadow: 0px 5px 4px rgba(0,0,0,0.05); z-index: 1;">
+      <app-header></app-header>
+    </nz-header>
+    <nz-content class="thin-scrollbar" style="overflow-y: overlay; overflow-x: hidden; margin: 0;">
+      <router-outlet #outlet="outlet"></router-outlet>
+    </nz-content>
+  </nz-layout>
+</nz-layout>

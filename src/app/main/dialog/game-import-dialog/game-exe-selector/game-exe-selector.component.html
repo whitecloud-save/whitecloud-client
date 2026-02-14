@@ -1,0 +1,10 @@
+<form nz-form nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzSpan]="5">游戏启动文件</nz-form-label>
+    <nz-form-control [nzSpan]="18">
+      <nz-select name="exePath" [(ngModel)]="gameImportService.setting.exeFile">
+        <nz-option *ngFor="let exe of gameImportService.exeSelections" [nzValue]="exe" [nzLabel]="exe"></nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+</form>

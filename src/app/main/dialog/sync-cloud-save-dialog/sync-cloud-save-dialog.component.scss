@@ -1,0 +1,18 @@
+.sync-cloud-save-dialog {
+  .dialog-content {
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+    
+    strong {
+      color: #1890ff;
+      font-weight: 600;
+    }
+  }
+  
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}

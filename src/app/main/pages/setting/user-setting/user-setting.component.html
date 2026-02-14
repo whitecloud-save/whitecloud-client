@@ -1,0 +1,71 @@
+@if(userService.logged | async) {
+  <div style="padding-left: 20px; display: flex;">
+    <div class="avatar-wrapper" (click)="uploadingAvatar ? null : changeAvatar()">
+      @if (uploadingAvatar) {
+        <nz-avatar [nzSize]="46" nzIcon="loading"></nz-avatar>
+      } @else if (!userService.avatarUrl) {
+        <nz-avatar [nzSize]="46" nzIcon="user"></nz-avatar>
+      } @else {
+        <nz-avatar [nzSize]="46" [nzSrc]="userService.avatarUrl"></nz-avatar>
+      }
+      @if (!uploadingAvatar) {
+        <div class="avatar-overlay">
+          <span nz-icon nzType="edit" nzTheme="outline" class="avatar-edit-icon"></span>
+        </div>
+      }
+    </div>
+    <div style="margin-left: 5px; display: flex; justify-content: center; flex-direction: column;">
+      <div class="nickname-wrapper" (click)="dialogService.openUserNicknameDialog()">
+        <span class="nickname-text">{{userService.userInfo?.nickname}}</span>
+        <span nz-icon nzType="edit" nzTheme="outline" class="edit-icon"></span>
+      </div>
+    </div>
+  </div>
+
+  @if (userService.isVip()) {
+  <div class="vip-info" style="padding-left: 20px; border-radius: 8px;">
+    <div class="vip-expire">
+      <span>高级会员到期：</span>
+      <span>{{userService.getVipExpireTime() | date:'yyyy-MM-dd'}}</span>
+    </div>
+    <div style="margin-top: 10px;">
+      <button nz-button nzType="primary" (click)="openVipBenefit()">续费</button>
+    </div>
+  </div>
+  }
+
+  <div class="storage-info" style="padding: 20px; border-radius: 8px;">
+    <h3>云存储空间</h3>
+    <div class="storage-details">
+      <div class="storage-text">
+        <span>已使用：{{storageUsed | fileSize}} / {{storageMax | fileSize}}</span>
+      </div>
+      <nz-progress [nzPercent]="storagePercentage" [nzStrokeColor]="'#1890ff'" [nzShowInfo]="false"></nz-progress>
+    </div>
+  </div>
+
+  <div style="padding-left: 20px;">
+    <nz-space nzSize="large">
+      @if (!userService.isVip()) {
+        <button nz-button nzType="primary" *nzSpaceItem (click)="openVipBenefit()">升级账号</button>
+      }
+      <!-- <button nz-button nzType="default" *nzSpaceItem (click)="dialogService.openUserNicknameDialog()">修改昵称</button> -->
+      <button nz-button *nzSpaceItem (click)="userService.logout()">登出</button>
+    </nz-space>
+  </div>
+
+} @else {
+  <div style="padding-left: 20px;">
+    <nz-avatar [nzSize]="46" nzIcon="user"></nz-avatar>
+    <span style="margin-left: 15px;">未登录</span>
+  </div>
+  <div class="login-tip" style="padding-left: 20px; margin-top: 20px; color: #8c8c8c;">
+    登录账号，开启云同步存档功能
+  </div>
+  <div style="padding-left: 20px; margin-top: 20px;">
+    <nz-space nzSize="large">
+      <button nz-button nzType="primary" *nzSpaceItem (click)="dialogService.openUserLoginRegisterDialog('login')">登录</button>
+      <button nz-button nzType="default" *nzSpaceItem (click)="dialogService.openUserLoginRegisterDialog('register')">注册</button>
+    </nz-space>
+  </div>
+}

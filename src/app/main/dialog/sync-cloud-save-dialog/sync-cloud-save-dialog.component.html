@@ -1,0 +1,15 @@
+<div class="sync-cloud-save-dialog">
+  <p class="dialog-content">
+    该游戏于 <strong>{{ saveDate }}</strong> 在 <strong>{{ hostname }}</strong> 上存在更新的云端存档，是否同步该存档后再开始游戏？
+  </p>
+
+</div>
+
+<div *nzModalFooter>
+  <button nz-button nzType="default" (click)="onCancel()">
+    不同步
+  </button>
+  <button nz-button nzType="primary" (click)="onConfirm()">
+    同步
+  </button>
+</div>

@@ -1,0 +1,36 @@
+
+@switch (game.state | async) {
+  @case(GameState.SaveSizeExceeded) {
+    <button class="game-start-button" (click)="startGame()" nz-button nzType="primary" nzSize="large">
+      <fa-icon nz-icon [icon]="iconService.solid.faPlay"></fa-icon>
+      <span style="margin-left: 8px;">开始游戏</span>
+    </button>
+  }
+  @case(GameState.Checked) {
+    <button class="game-start-button" (click)="startGame()" nz-button nzType="primary" nzSize="large">
+      <fa-icon nz-icon [icon]="iconService.solid.faPlay"></fa-icon>
+      <span style="margin-left: 8px;">开始游戏</span>
+    </button>
+  }
+  @case(GameState.Init) {
+    <button class="game-start-button" nz-button nzType="primary" nzSize="large" [disabled]="true">
+      初始化中
+    </button>
+  }
+  @case(GameState.Running) {
+    <button class="game-start-button" nz-button nzType="primary" nzSize="large" [disabled]="true">
+      游戏中
+    </button>
+  }
+  @case(GameState.Saving) {
+    <button class="game-start-button" nz-button nzType="primary" nzSize="large" [disabled]="true">
+      存档备份中
+    </button>
+  }
+  @case(GameState.Error) {
+    <button class="game-start-button" (click)="startGame()" [disabled]="true" nz-button nzType="primary" nzDanger nzSize="large">
+      <fa-icon nz-icon [icon]="iconService.solid.faGear"></fa-icon>
+      设置错误
+    </button>
+  }
+}

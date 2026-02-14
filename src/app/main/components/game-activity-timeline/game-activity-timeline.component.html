@@ -1,0 +1,72 @@
+@if (displayedActivities.length > 0) {
+  <div class="timeline-container">
+    <div class="custom-timeline">
+      <ng-container *ngFor="let activity of displayedActivities; let last = last">
+        <ng-container [ngSwitch]="activity.type">
+          <div *ngSwitchCase="'GAME_TIME'" class="timeline-item">
+            <div class="timeline-item-tail"></div>
+            <div class="timeline-item-head">
+              <fa-icon [icon]="iconService.solid.faGamepad"></fa-icon>
+            </div>
+            <div class="timeline-item-content">
+              <div class="activity-content">{{ activity.content }}</div>
+              <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'SAVE_BACKUP_CLOUD'" class="timeline-item">
+            <div class="timeline-item-tail"></div>
+            <div class="timeline-item-head green">
+              <fa-icon [icon]="iconService.solid.faCloudArrowUp"></fa-icon>
+            </div>
+            <div class="timeline-item-content">
+              <div class="activity-content">{{ activity.content }}</div>
+              <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'SAVE_BACKUP_LOCAL'" class="timeline-item">
+            <div class="timeline-item-tail"></div>
+            <div class="timeline-item-head green">
+              <fa-icon [icon]="iconService.solid.faFile"></fa-icon>
+            </div>
+            <div class="timeline-item-content">
+              <div class="activity-content">{{ activity.content }}</div>
+              <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'SAVE_UPLOAD_FAILED'" class="timeline-item">
+            <div class="timeline-item-tail"></div>
+            <div class="timeline-item-head red">
+              <fa-icon [icon]="iconService.solid.faCircleExclamation"></fa-icon>
+            </div>
+            <div class="timeline-item-content">
+              <div class="activity-content">
+                {{ activity.content }}
+                <a *ngIf="!userService.isVip() && shouldShowUpgrade(activity)" (click)="openVipDialog()">升级账号</a>
+              </div>
+              <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      @if (canLoadMore) {
+        <div class="timeline-item load-more">
+          <div class="timeline-item-content">
+            <a class="load-more-link" (click)="loadMore()">加载更多...</a>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+@else {
+  <div class="empty-container">
+    <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="notFoundContentTpl"/>
+  </div>
+  <ng-template #notFoundContentTpl>
+    <span style="font-size: 12px;">暂无动态</span>
+  </ng-template>
+}

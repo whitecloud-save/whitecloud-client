@@ -1,0 +1,104 @@
+// .vip-center {
+//   .vip-info {
+//     display: flex;
+//     align-items: center;
+//     gap: 15px;
+
+//     .vip-badge {
+//       display: flex;
+//       align-items: center;
+//     }
+
+//     .vip-expire {
+//       display: flex;
+//       align-items: center;
+//       gap: 8px;
+//     }
+//   }
+// }
+
+.vip-info {
+  padding: 20px;
+}
+
+.storage-info {
+  .storage-details {
+    width: 70%;
+    .storage-text {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #595959;
+    }
+  }
+}
+
+.login-tip {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.nickname-wrapper {
+  margin-left: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .edit-icon {
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 14px;
+  }
+
+  &:hover .edit-icon {
+    opacity: 1;
+  }
+}
+
+.avatar-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+
+  .avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    .avatar-edit-icon {
+      color: white;
+      font-size: 18px;
+    }
+  }
+
+  &:hover .avatar-overlay {
+    opacity: 1;
+  }
+}
+
+.nickname-wrapper {
+  margin-left: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .edit-icon {
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 14px;
+  }
+
+  &:hover .edit-icon {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,20 @@
+<form nz-form [formGroup]="nicknameForm" (ngSubmit)="submitNicknameForm()">
+  <nz-form-item>
+    <nz-form-label
+      [nzSm]="6"
+      [nzXs]="24"
+      nzFor="nickname"
+      nzRequired
+    >
+      <span>昵称</span>
+    </nz-form-label>
+    <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="昵称长度必须为1-10个字符">
+      <input nz-input id="nickname" formControlName="nickname" />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item nz-row>
+    <nz-form-control [nzSpan]="14" [nzOffset]="6">
+      <button nz-button nzType="primary" [disabled]="nicknameForm.invalid">确定</button>
+    </nz-form-control>
+  </nz-form-item>
+</form>

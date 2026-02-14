@@ -1,0 +1,9 @@
+<div class="folder-selector" [ngClass]="active ? 'active' : ''" style="height: 250px;"
+  (click)="openFolderSelectorDialog()" (drop)="onFileDrop($event)" (dragenter)="active = true" (dragleave)="active = false"
+  (dragover)="$event.preventDefault(); $event.stopPropagation();"
+>
+  <p class="selector-hint">
+    <fa-icon style="font-size: 45px; opacity: 0.6;" [icon]="iconService.light.faFolder"></fa-icon>
+  </p>
+  <p class="selector-hint">点击选择或拖入游戏文件夹</p>
+<div>

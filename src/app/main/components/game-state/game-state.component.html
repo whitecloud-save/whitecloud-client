@@ -1,0 +1,29 @@
+
+@switch (state) {
+  @case(GameState.Checked) {
+    @if (isNet) {
+      <nz-tag nzColor="#87d068">已同步</nz-tag>
+    } @else {
+      <nz-tag nzColor="#87d068">已备份</nz-tag>
+    }
+  }
+  @case(GameState.Init) {
+    <nz-tag nzColor="#2db7f5">初始化</nz-tag>
+  }
+  @case(GameState.Running) {
+    <nz-tag nzColor="#108ee9">游戏中</nz-tag>
+
+  }
+  @case(GameState.Saving) {
+    <nz-tag nzColor="#108ee9">备份中</nz-tag>
+  }
+  @case(GameState.Error) {
+    <nz-tag nzColor="#f50">错误</nz-tag>
+  }
+  @case(GameState.Cloud) {
+    <nz-tag nzColor="#2db7f5">云端</nz-tag>
+  }
+  @case(GameState.SaveSizeExceeded) {
+    <nz-tag nzColor="yellow">存档超限</nz-tag>
+  }
+}

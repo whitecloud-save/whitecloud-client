@@ -1,0 +1,25 @@
+<div class="game-cover-list" cdkDropListGroup orientation="horizontal" nz-flex nzWrap="wrap" style="margin-top: 20px; margin-bottom: 20px;">
+  @for (game of (gameService.games | async); track game.id;) {
+    <div class="game-cover-container" cdkDropList (cdkDropListEntered)="enter($event, game)" (cdkDropListDropped)="drop($event)">
+      @if(game === movingGame) {
+        <app-game-cover [game]="enteredGame ? enteredGame! : movingGame" ></app-game-cover>
+      }
+      <div cdkDrag (cdkDragStarted)="dragStarted($event, game)">
+        <app-game-cover [style.opacity]="enteredGame === game ? 0.5 : 1" [game]="enteredGame === game ? movingGame! : game" ></app-game-cover>
+        <div *cdkDragPlaceholder></div>
+      </div>
+    </div>
+  }
+  @for (game of (gameService.remoteGames | async); track game.id;) {
+    <div class="game-cover-container">
+      <div>
+        <app-game-cover [game]="game"></app-game-cover>
+      </div>
+    </div>
+  }
+  @if (isEmpty()) {
+    <div style="width: 100%; display: flex; justify-content: center; align-items: center;">
+      <nz-empty nzNotFoundImage="simple" nzNotFoundContent="点击上方“+”按钮添加游戏"/>
+    </div>
+  }
+</div>

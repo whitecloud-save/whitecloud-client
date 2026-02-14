@@ -1,0 +1,54 @@
+@if(game) {
+  <div style="padding: 20px;">
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="8">
+        <nz-card nzBordered="false">
+          <nz-statistic [nzValue]="game.totalGameTime | gameTime" nzTitle="游戏时间"></nz-statistic>
+        </nz-card>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-card nzBordered="false">
+          <nz-statistic [nzValue]="availableSaveCount" nzTitle="存档数量"></nz-statistic>
+        </nz-card>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-card nzBordered="false">
+          <nz-statistic [nzValue]="game.availableLocalSaves | saveTotalSize | fileSize" nzTitle="占用空间"></nz-statistic>
+        </nz-card>
+      </nz-col>
+    </nz-row>
+  </div>
+
+  <div style="width: 100%; background-color: white; padding: 10px 20px;">
+    <div>
+      <nz-space nzSize="large">
+        <app-start-game-button *nzSpaceItem [game]="game"></app-start-game-button>
+        <div class="game-brief-status" *nzSpaceItem>
+          <span class="game-brief-status-title">状态</span><br/>
+          <app-game-state [state]="game.state | async" [isNet]="userService.logged | async"></app-game-state>
+        </div>
+        <div class="game-brief-status" *nzSpaceItem>
+          <span class="game-brief-status-title">最后运行日期</span><br/>
+          <span class="game-brief-status-value">{{game.lastGameTime | lastGameTime}}</span>
+        </div>
+        <div class="game-brief-status" *nzSpaceItem>
+          <span class="game-brief-status-title">最新存档时间</span><br/>
+          <span class="game-brief-status-value" *ngIf="game.lastSave">{{game.lastSave.createTime * 1000 | date: 'YYYY/MM/dd HH:mm:ss'}}</span>
+        </div>
+      </nz-space>
+    </div>
+    <nz-divider nzOrientation="left" nzText="操作" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+<div>
+      <nz-space>
+        <button *nzSpaceItem nz-button (click)="backupSave()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">备份当前存档</button>
+        <button *nzSpaceItem nz-button (click)="game.openGameGuide()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开游戏攻略</button>
+        <button *nzSpaceItem nz-button (click)="game.openSavePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开存档目录</button>
+        <button *nzSpaceItem nz-button (click)="game.openGamePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开游戏目录</button>
+      </nz-space>
+    </div>
+    <nz-divider nzOrientation="left" nzText="动态" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
+    <div>
+      <app-game-activity-timeline [gameId]="game.id"></app-game-activity-timeline>
+    </div>
+  </div>
+}

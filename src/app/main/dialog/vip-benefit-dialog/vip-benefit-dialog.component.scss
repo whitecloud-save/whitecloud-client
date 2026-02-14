@@ -1,0 +1,284 @@
+.vip-benefit-dialog {
+  background: white;
+  height: 350px;
+}
+
+.dialog-header {
+  margin-bottom: 16px;
+  height: 10px;
+}
+
+.comparison-cards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.card {
+  width: 250px;
+  padding: 22px 21px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .user-type {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1e293b;
+  }
+}
+
+.price {
+  // position: absolute;
+  // right: 15px;
+  // top: 0;
+  display: flex;
+  align-items: baseline;
+
+  .price-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2563eb;
+  }
+
+  .price-unit {
+    margin-left: 2px;
+    font-size: 12px;
+    color: #64748b;
+  }
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.benefit-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+
+  .icon-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    fa-icon {
+      font-size: 12px;
+      color: #64748b;
+    }
+  }
+
+  .vip-icon {
+    background: rgba(37, 99, 235, 0.1);
+
+    fa-icon {
+      color: #2563eb;
+    }
+  }
+}
+
+.benefit-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.benefit-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.benefit-value {
+  font-size: 16px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.benefit-value.large {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.benefit-value.primary {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.benefit-value.small {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 17px;
+  text-align: center;
+
+  .current-status {
+    font-size: 14px;
+    color: #94a3b8;
+  }
+}
+
+.free-card {
+  background: rgba(248, 250, 252, 0.5);
+  border: 1px solid #e2e8f0;
+
+  .icon-wrapper {
+    background: #e2e8f0;
+  }
+}
+
+.vip-card {
+  background: white;
+  border: 2px solid #2563eb;
+  box-shadow: 0px 10px 15px -3px rgba(37, 99, 235, 0.1), 0px 4px 6px -4px rgba(37, 99, 235, 0.1);
+  overflow: hidden;
+
+  .upgrade-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 16px;
+  }
+}
+
+.vip-badge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #2563eb;
+  color: white;
+  padding: 4px 8px;
+  border-bottom-left-radius: 8px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.payment-section {
+  margin-top: 20px;
+  // padding: 20px;
+  // background: #f8fafc;
+  border-radius: 8px;
+  // min-height: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #64748b;
+  font-size: 14px;
+  flex: 1;
+}
+
+.payment-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 1;
+}
+
+.product-select {
+  flex: 1;
+}
+
+.pay-button {
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.pay-price {
+  font-weight: bold;
+  font-size: 20px;
+  color: #2563eb;
+  min-width: 80px;
+  text-align: right;
+}
+
+.product-option {
+  display: flex;
+  flex-direction: column;
+
+  .product-remark {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.no-products {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.payment-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #64748b;
+  font-size: 14px;
+  flex: 1;
+}
+
+.payment-qrcode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+
+  .qrcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .qr-code {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+  }
+
+  .qrcode-tip {
+    font-size: 14px;
+    color: #64748b;
+  }
+}

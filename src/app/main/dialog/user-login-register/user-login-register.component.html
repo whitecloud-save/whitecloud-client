@@ -1,0 +1,82 @@
+<div>
+  <div nz-row>
+    <div nz-col [nzSpan]="14" [nzOffset]="6">
+      <nz-segmented [nzOptions]="modeOptions" [nzBlock]="true" [(ngModel)]="mode" style="margin-bottom: 10px;"></nz-segmented>
+    </div>
+  </div>
+
+  @if(mode === 1) {
+    <form nz-form [formGroup]="registerForm" (ngSubmit)="submitRegisterForm()">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="email">邮箱</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入合法邮箱地址">
+          <input nz-input formControlName="email" id="email" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="password" nzRequired>密码</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入密码">
+          <input
+            nz-input
+            type="password"
+            id="password"
+            formControlName="password"
+          />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label
+          [nzSm]="6"
+          [nzXs]="24"
+          nzFor="nickname"
+          nzRequired
+        >
+          <span>昵称</span>
+        </nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="昵称长度必须为1-10个字符">
+          <input nz-input id="nickname" formControlName="nickname" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item nz-row>
+        <nz-form-control [nzSpan]="14" [nzOffset]="6">
+          <button nz-button nzType="primary" style="width: 100%">注册</button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  } @else if (mode === 0) {
+    <form nz-form [formGroup]="loginForm" (ngSubmit)="submitLoginForm()">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="username">邮箱</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入合法邮箱地址">
+          <input nz-input formControlName="username" id="username" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="password" nzRequired>密码</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入密码">
+          <input
+            nz-input
+            type="password"
+            id="password"
+            formControlName="password"
+          />
+        </nz-form-control>
+      </nz-form-item>
+      <div nz-row class="login-form-margin">
+        <div nz-col [nzOffset]="6" [nzSpan]="8">
+          <label nz-checkbox formControlName="autoLogin">
+            <span>自动登录</span>
+          </label>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <a class="login-form-forgot" (click)="openForgetPassword()">忘记密码</a>
+        </div>
+      </div>
+      <nz-form-item nz-row>
+        <nz-form-control [nzSpan]="14" [nzOffset]="6">
+          <button nz-button nzType="primary" style="width: 100%">登录</button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  }
+</div>

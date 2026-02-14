@@ -1,0 +1,156 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.timeline-container {
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.custom-timeline {
+  position: relative;
+  padding: 0;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 20px;
+  padding-left: 50px;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  &.load-more {
+    cursor: pointer;
+
+    .timeline-item-head {
+      width: 15px;
+      height: 15px;
+    }
+
+    &:hover {
+      .load-more-link {
+        color: #1890ff;
+      }
+    }
+  }
+}
+
+.timeline-item-tail {
+  position: absolute;
+  left: 17.5px;
+  top: 30px;
+  height: calc(100% - 6px);
+  border-left: 2px solid #e8e8e8;
+}
+
+.timeline-item:last-child > .timeline-item-tail {
+  display: none;
+}
+
+.timeline-item.load-more {
+  padding-left: 17.5px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 16.5px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #fff;
+  }
+
+  .timeline-item-content {
+    padding-left: 32px;
+  }
+}
+
+.timeline-item-head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 35px;
+  height: 35px;
+  background-color: #fff;
+  border: 2px solid #1890ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+  font-size: 12px;
+  z-index: 1;
+
+  &.green {
+    border-color: #52c41a;
+    color: #52c41a;
+  }
+
+  &.red {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+  }
+
+  fa-icon {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.timeline-item-content {
+  position: relative;
+  top: -2px;
+  padding: 0 0 8px 0;
+}
+
+.activity-content {
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.load-more-link {
+  color: #1890ff;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 120px;
+  padding-left: 20px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.empty-text {
+  font-size: 14px;
+}

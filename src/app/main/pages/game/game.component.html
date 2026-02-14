@@ -1,0 +1,43 @@
+<div  nz-flex [nzVertical]="true" style="height: 100%;">
+  @if (gamePageService.game | async; as game) {
+    <div style="display: flex; justify-content: space-between; width: 100%; background-color: white; position: relative; z-index: 0;">
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item routerLinkActive #homeRla="routerLinkActive" [nzSelected]="homeRla.isActive">
+          <a [routerLink]="'/main/game/' + game.id + '/home'">
+            游戏概览
+          </a>
+        </li>
+        <li nz-menu-item routerLinkActive #saveRla="routerLinkActive" [nzSelected]="saveRla.isActive">
+          <a [routerLink]="'/main/game/' + game.id + '/save'">
+            存档管理
+          </a>
+        </li>
+        <li nz-menu-item routerLinkActive #settingRla="routerLinkActive" [nzSelected]="settingRla.isActive">
+          <a [routerLink]="'/main/game/' + game.id + '/setting'">
+            设置
+            @if((game.state | async) === GameState.Error) {
+              <fa-icon style="color: red;" [icon]="iconService.solid.faExclamation"></fa-icon>
+            }
+          </a>
+        </li>
+      </ul>
+      @if(game.cachedCoverImgUrl | async; as coverUrl) {
+        @for(g of [game]; track g.id) {
+          <div class="game-decorate-container">
+            <div class="game-decorate-bg" [ngStyle]="{'background-image': 'url(' + coverUrl + ')'}"></div>
+            <div class="game-decorate-mask"></div>
+          </div>
+        }
+      }
+    </div>
+    @if((game.state | async) === GameState.SaveSizeExceeded) {
+      <div class="save-size-exceeded-banner">
+        <span>本游戏存档文件夹容量过大，当前自动备份存档功能已被禁用</span>
+        <button nz-button nzType="link" (click)="navigateToSetting()">去设置</button>
+      </div>
+    }
+  }
+  <div style="flex: 1; width: 100%;" class="thin-scrollbar">
+    <router-outlet></router-outlet>
+  </div>
+</div>

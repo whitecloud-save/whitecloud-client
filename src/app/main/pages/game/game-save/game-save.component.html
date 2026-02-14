@@ -1,0 +1,8 @@
+<div nz-flex [nzVertical]="true" style="height: 100%; width: 100%;">
+  <div style="padding: 15px 20px">
+    <label nz-checkbox [(ngModel)]="onlyShowStared">只显示收藏存档</label>
+  </div>
+  <div style="width: 100%; background-color: white; flex: 1">
+    <app-game-save-table [list]="game.saves | filterAvailableSaves: onlyShowStared" [game]="game"></app-game-save-table>
+  </div>
+</div>

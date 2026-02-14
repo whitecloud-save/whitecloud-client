@@ -1,0 +1,143 @@
+<div class="vip-benefit-dialog">
+  <div class="dialog-header">
+    <!-- <h3 class="dialog-title">升级会员</h3> -->
+  </div>
+
+  @if (paymentState === PaymentState.None) {
+    <div class="comparison-cards">
+      <div class="card free-card">
+        <div class="card-header">
+          <span class="user-type">普通用户</span>
+        </div>
+
+        <div class="card-content">
+          <div class="benefit-item">
+            <div class="icon-wrapper">
+              <fa-icon [icon]="iconService.solid.faServer"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">云储存空间</span>
+              <span class="benefit-value">5 MB</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper">
+              <fa-icon [icon]="iconService.solid.faFile"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">单存档大小限制</span>
+              <span class="benefit-value">1 MB</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper">
+              <fa-icon [icon]="iconService.solid.faClock"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">文件过期时间</span>
+              <span class="benefit-value small">离线后30天</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- <div class="card-footer">
+          <span class="current-status">当前状态</span>
+        </div> -->
+      </div>
+
+      <div class="card vip-card">
+        <div class="card-header">
+          <span class="user-type">高级会员</span>
+          <!-- <fa-icon [icon]="iconService.solid.faCrown" style="color: #faad14;"></fa-icon> -->
+          <!-- <div class="price">
+            <span class="price-value">¥5</span>
+            <span class="price-unit">/月</span>
+          </div> -->
+        </div>
+
+        <div class="card-content">
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faServer"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">云储存空间</span>
+              <span class="benefit-value large">100 MB</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faFile"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">单存档大小限制</span>
+              <span class="benefit-value primary">无限制</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faClock"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">文件过期时间</span>
+              <span class="benefit-value primary small">永久保存 (有效期内)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="payment-section">
+    @if (paymentState === PaymentState.None) {
+      @if (loadingSKUs) {
+        <div class="loading-state">
+          <nz-spin nzSimple="true"></nz-spin>
+          <span>加载中...</span>
+        </div>
+      } @else if (skuList.length > 0) {
+        <div class="payment-controls">
+          <nz-select
+            [(ngModel)]="selectedSku"
+            [nzCustomTemplate]="productOptionTemplate"
+            style="flex: 1; margin-right: 12px;">
+            @for (sku of skuList; track sku.id) {
+              <nz-option [nzValue]="sku" [nzLabel]="sku.name"></nz-option>
+            }
+          </nz-select>
+          <span class="pay-price">¥{{(selectedSku?.price || 0) / 1000}}</span>
+          <button nz-button nzType="primary" class="pay-button" (click)="pay()">
+            微信支付
+          </button>
+        </div>
+        <ng-template #productOptionTemplate let-selected>
+          <div class="product-option">
+            <span>{{selected.nzValue.name}}</span>
+            <span class="product-remark">{{selected.nzValue.remark}}</span>
+          </div>
+        </ng-template>
+      } @else {
+        <div class="no-products">
+          暂无可购买商品
+        </div>
+      }
+    } @else if (paymentState === PaymentState.Loading) {
+      <div class="payment-loading">
+        <nz-spin nzSimple="true"></nz-spin>
+        <span>正在获取支付信息...</span>
+      </div>
+    } @else if (paymentState === PaymentState.QrCode) {
+      <div class="payment-qrcode">
+        <div class="qrcode-container">
+          <img [src]="qrCodeUrl" class="qr-code" alt="支付二维码" />
+          <div class="qrcode-tip">请使用微信扫码支付</div>
+        </div>
+        <button nz-button (click)="backToPayment()">返回</button>
+      </div>
+    }
+  </div>
+</div>

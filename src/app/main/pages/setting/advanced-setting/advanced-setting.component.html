@@ -1,0 +1,23 @@
+<form nz-form nzLabelAlign="left" [formGroup]="basicForm">
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="useLE">使用 Locale Emulator</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <label nz-checkbox formControlName="useLE"></label>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="LEExePath" nzTooltipTitle="设置 Locale Emulator 安装目录下的 LEProc.exe 文件路径">LEProc.exe</nz-form-label>
+    <nz-form-control [nzSpan]="16">
+      <div nz-flex nzAlign="center" style="width: 100%">
+        <div style="flex: 1; margin-right: 5px;">
+          <input nz-input formControlName="LEExePath"/>
+        </div>
+        <div>
+          <button nz-button (click)="openLEExePathPathDialog()">
+            <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+</form>

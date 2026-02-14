@@ -1,0 +1,83 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 213px;
+  height: 160px;
+  transition: all 200ms linear;
+  cursor: pointer;
+  background-color: white;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  .game-cover {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+      .game-title {
+        bottom: 0px;
+      }
+    }
+
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .game-title {
+    position: absolute;
+    bottom: -40px;
+    width: 100%;
+    height: 40px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    transition: all 200ms linear;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+
+@media screen and (min-width: 830px) and (max-width: 960px) {
+  .container {
+    width: 180px;
+    height: 135px;
+  }
+}
+
+@media screen and (min-width: 1000px) and (max-width: 1160px){
+  .container {
+    width: 180px;
+    height: 135px;
+  }
+}
+
+@media screen and (min-width: 1300px) and (max-width: 1386px) {
+  .container {
+    width: 180px;
+    height: 135px;
+  }
+}
+
+@media screen and (min-width: 1500px) and (max-width: 1570px) {
+  .container {
+    width: 180px;
+    height: 135px;
+  }
+}

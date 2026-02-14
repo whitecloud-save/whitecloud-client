@@ -1,0 +1,37 @@
+<form nz-form nzLayout="vertical" [formGroup]="gameImportService.detailForm" >
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="name">游戏名称</nz-form-label>
+    <nz-form-control [nzSpan]="20">
+      <input nz-input formControlName="name"/>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="savePath">存档文件夹</nz-form-label>
+    <nz-form-control [nzSpan]="20">
+      <div nz-flex nzAlign="center" style="width: 100%">
+        <div style="flex: 1; margin-right: 5px;">
+          <input nz-input formControlName="savePath"/>
+        </div>
+        <div>
+          <button nz-button (click)="openSavePathDialog()">
+            <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+</form>
+<div style="color: rgba(0, 0, 0, 0.5);">
+  <span style="cursor: pointer;"  nz-tooltip [nzTooltipTitle]="titleTemplate" nzTooltipPlacement="bottom">
+    找不到游戏存档文件夹？
+  </span>
+</div>
+
+<ng-template #titleTemplate let-thing>
+  <span>游戏存档可能位于以下位置</span>
+
+  <div>{{gameImportService.setting.gamePath}}\</div>
+  <div *ngIf="documentPath">{{documentPath}}\</div>
+  <div *ngIf="appDataPath">{{appDataPath}}\</div>
+
+</ng-template>
