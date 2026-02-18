@@ -6,6 +6,7 @@ import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalRef} from 'ng-zorro-antd/modal';
 import {DialogService} from '../../../service/dialog.service';
 import {ErrorHandlingUtil} from '../../../service/error-handling-util';
+import { Utility } from '../../../library/utility';
 
 @Component({
   selector: 'app-user-forget-password',
@@ -65,11 +66,11 @@ export class UserForgetPasswordComponent {
     if (this.forgetPasswordForm.invalid)
       return;
     if (!this.id)
-      return;
-
+      return;    
     this.server.auth.forgetPassword({
       id: this.id,
       ...this.forgetPasswordForm.value,
+      password: Utility.passwordHash(this.forgetPasswordForm.value.password as string),
     } as IReqForgetPassword)
       .then(() => {
         this.message.success('密码重置成功');
