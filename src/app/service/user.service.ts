@@ -1,15 +1,14 @@
 import {Injectable} from '@angular/core';
 import {ServerService, ServerState} from './server/server.service';
 import {TokenService} from './server/token.service';
-import {UserError} from '../library/error/UserError';
 import {AccountLoginType, AccountVIP, ClientNotifyHandler, UserErrorCode, INotifyStorageUpdate, INotifyVipUpdate, INotifyPaymentSuccess} from './server/api';
 import {BehaviorSubject} from 'rxjs';
+import {interval, switchMap} from 'rxjs';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
-import {APP_CONFIG} from '../../environments/environment';
-import {UnixTime, Utility} from '../library/utility';
-import {ConnectionState, ConnectionStateService} from './connection-state.service';
+import {NodeTime, UnixTime, Utility} from '../library/utility';
 import {ErrorHandlingUtil} from './error-handling-util';
+import { BaseError } from '../library/error/BaseError';
 
 export interface IStorageInfo {
   usedSpace: number;
@@ -97,6 +96,18 @@ export class UserService {
       this.message.success('支付成功');
       this.modal.closeAll();
     });
+
+    interval(NodeTime.minute(2)).subscribe(() => {
+      if (this.logged.getValue()) {
+        this.fetchUserInfo().catch(err => {
+          if (err instanceof BaseError) {
+            if (err.code === UserErrorCode.ERR_NOT_LOGIN) {
+              this.setLogout();
+            }
+          }
+        });
+      }
+    });
   }
 
   async reconnectLogin() {
@@ -160,7 +171,13 @@ export class UserService {
     if (!this.logged.getValue()) {
       return;
     }
-    await this.server.auth.logout();
+    await this.server.auth.logout().catch((err) => {
+      if (err instanceof BaseError) {
+        if (err.code === UserErrorCode.ERR_NOT_LOGIN)
+          return;
+      }
+      throw err;
+    });
     this.setLogout();
   }
 
