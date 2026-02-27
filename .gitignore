@@ -45,3 +45,5 @@ Thumbs.db
 /updater
 
 third-party/@fortawesome
+/build
+.npmrc

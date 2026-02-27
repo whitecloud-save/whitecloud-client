@@ -1,6 +1,6 @@
 {
   "name": "whitecloud",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "scripts": {
     "dev": "npm-run-all -p electron:serve ng:serve",
     "start:electron": "npm run build:electron && electron . --serve",
@@ -10,7 +10,7 @@
     "build:electron": "tsc --project tsconfig.electron.json",
     "build:package": "electron-forge package",
     "build:updater": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe /out:updater.exe scripts\\updater.cs",
-    "build": "npm run build:angular && npm run build:electron && electron-forge package"
+    "build": "npm run build:angular && npm run build:electron && electron-forge package && node scripts/compute-asar-hash.js"
   },
   "main": "dist/electron.js",
   "private": true,
@@ -54,9 +54,9 @@
     "@electron/fuses": "^1.8.0",
     "@electron/rebuild": "^3.7.2",
     "@fortawesome/angular-fontawesome": "0.15.0",
+    "@fortawesome/fontawesome-common-types": "6.5.2",
     "@fortawesome/fontawesome-svg-core": "7.2.0",
     "@fortawesome/free-solid-svg-icons": "7.2.0",
-    "@fortawesome/fontawesome-common-types": "6.5.2",
     "@fortawesome/pro-duotone-svg-icons": "third-party/@fortawesome/pro-duotone-svg-icons",
     "@fortawesome/pro-light-svg-icons": "third-party/@fortawesome/pro-light-svg-icons",
     "@fortawesome/pro-regular-svg-icons": "third-party/@fortawesome/pro-regular-svg-icons",
@@ -83,6 +83,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "ng-zorro-antd": "^18.2.1",
+    "node-gyp": "^12.1.0",
     "npm-run-all": "^4.1.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
