@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "../../dist/preload",
+    "types": [],
+    "sourceMap": false
+  },
+  "files": [
+    "preload.ts",
+    "waiter.ts"
+  ]
+}

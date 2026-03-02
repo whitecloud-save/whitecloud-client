@@ -3,7 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = (config, options) => {
-  config.target = 'electron-renderer';
+  config.target = 'web';
+
+  config.output = config.output || {};
+  config.output.globalObject = 'globalThis';
 
   if (options.fileReplacements) {
     for (const fileReplacement of options.fileReplacements) {

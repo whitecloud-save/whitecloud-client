@@ -11,7 +11,7 @@
         }
       },
       "root": "",
-      "sourceRoot": "src",
+      "sourceRoot": "src/angular",
       "prefix": "app",
       "architect": {
         "build": {
@@ -24,21 +24,21 @@
               "path": "./angular-webpack.config.js",
               "replaceDuplicatePlugins": true
             },
-            "outputPath": "dist",
-            "index": "src/index.html",
-            "main": "src/main.ts",
+            "outputPath": "dist/angular",
+            "index": "src/angular/index.html",
+            "main": "src/angular/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "tsconfig.app.json",
+            "tsConfig": "src/angular/tsconfig.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "src/angular/favicon.ico",
+              "src/angular/assets"
             ],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.scss"
+              "src/angular/styles.scss"
             ],
             "scripts": []
           },
@@ -49,8 +49,8 @@
               "outputHashing": "none",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "src/angular/environments/environment.ts",
+                  "with": "src/angular/environments/environment.prod.ts"
                 }
               ]
             },
@@ -87,15 +87,15 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "tsconfig.spec.json",
+            "tsConfig": "src/angular/tsconfig.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "src/angular/favicon.ico",
+              "src/angular/assets"
             ],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.scss"
+              "src/angular/styles.scss"
             ],
             "scripts": []
           }

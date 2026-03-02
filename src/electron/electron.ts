@@ -1,14 +1,19 @@
-import {app, BrowserWindow, Notification, Tray, Menu, nativeImage, dialog} from 'electron';
+import {app, BrowserWindow, Notification, Tray, Menu, nativeImage, dialog, utilityProcess, MessageChannelMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as oFs from 'fs';
 import {ipcMain} from 'electron/main';
 import {spawn} from 'child_process';
 import * as semver from 'semver';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const remote = require('@electron/remote/main');
+import {fileURLToPath} from 'url';
+import {dirname} from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-remote.initialize();
+// import remote from '@electron/remote';
+// const remote = require('@electron/remote/main');
+
+// remote.initialize();
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -30,11 +35,12 @@ const createWindow = async (): Promise<BrowserWindow> => {
     width: 975,
     height: 600,
     webPreferences: {
+      preload: path.join(__dirname, '../preload', 'preload.js'),
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
       allowRunningInsecureContent: true,
       webSecurity: false,
-      devTools: true,
+      devTools: serve,
     },
     title: 'Whitecloud',
     show: false,
@@ -42,7 +48,7 @@ const createWindow = async (): Promise<BrowserWindow> => {
   });
   win.menuBarVisible = false;
 
-  remote.enable(win.webContents);
+  // remote.enable(win.webContents);
   if (serve) {
     win.loadURL('http://localhost:4200');
     win.webContents.openDevTools();
@@ -50,8 +56,8 @@ const createWindow = async (): Promise<BrowserWindow> => {
     let pathIndex = './index.html';
 
     try {
-      await fs.access(path.join(__dirname, '../dist/index.html'), fs.constants.F_OK);
-      pathIndex = '../dist/index.html';
+      await fs.access(path.join(__dirname, '../angular/index.html'), fs.constants.F_OK);
+      pathIndex = '../angular/index.html';
     } catch (err) {}
 
     const url = new URL(path.join('file:', __dirname, pathIndex));
@@ -74,6 +80,26 @@ const createWindow = async (): Promise<BrowserWindow> => {
     }
   });
 
+  // 2. 启动 UtilityProcess 工具进程 (纯 Node 环境)
+  const worker = utilityProcess.fork(path.join(__dirname, 'worker.js'));
+
+  // 3. 创建直连通道！包含两个配对的端口 port1 和 port2
+  const { port1, port2 } = new MessageChannelMain();
+
+  // 4. 等待网页加载完成后，把 port1 扔给渲染进程
+  win.webContents.once('did-finish-load', () => {
+    // 必须放在数组里通过 IPC 发送
+    win!.webContents.postMessage('port-to-renderer', null, [port1]);
+  });
+
+  // 5. 把 port2 扔给 UtilityProcess
+  worker.postMessage({ command: 'init-port' }, [port2]);
+
+  // 可选：监听 worker 崩溃，方便热更或错误恢复
+  worker.on('exit', (code) => {
+    console.log(`Worker 进程已退出，退出码: ${code}`);
+  });
+
   return win;
 };
 
@@ -86,7 +112,7 @@ const quitApp = () => {
 }
 
 const createTray = (): void => {
-  const iconPath = path.join(__dirname, 'assets/icon.png');
+  const iconPath = path.join(__dirname, '../angular/assets/icon.png');
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
 
@@ -268,7 +294,7 @@ try {
       childWinMap.delete(id);
     });
 
-    remote.enable(childWin.webContents);
+    // remote.enable(childWin.webContents);
     if (serve) {
       childWin.loadURL('http://localhost:4200/');
       childWin.webContents.openDevTools();
@@ -276,8 +302,8 @@ try {
       let pathIndex = './index.html';
 
       try {
-        await fs.access(path.join(__dirname, '../dist/index.html'), fs.constants.F_OK);
-        pathIndex = '../dist/index.html';
+        await fs.access(path.join(__dirname, '../angular/index.html'), fs.constants.F_OK);
+        pathIndex = '../angular/index.html';
       } catch (err) {}
 
       const url = new URL(path.join('file:', __dirname, pathIndex));
