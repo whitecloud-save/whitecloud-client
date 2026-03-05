@@ -334,6 +334,25 @@ export declare class BusinessHandler {
         policy: string;
         accessKey: string;
     }>;
+    generateGameSaveSignatureV4(body: IReqGenerateGameSaveSignatureV4): Promise<{
+        url: string;
+        callback: string;
+        filename: string;
+    }>;
+    generateGameSaveSTS(body: IReqGenerateGameSaveSTS): Promise<{
+        region: string;
+        bucket: string;
+        callback: {
+            callbackUrl: string;
+            callbackBody: string;
+            callbackBodyType: string;
+        };
+        filename: string;
+        accessKeyId: string;
+        accessKeySecret: string;
+        securityToken: string;
+        expiration: string;
+    }>;
     modifyNickname(body: IReqModifyNickname): Promise<{}>;
     syncGame(body: IReqSyncGame): Promise<UserGame>;
     signGameCoverUrl(body: IReqSignGameCoverUrl): Promise<{
@@ -368,6 +387,30 @@ export interface IReqGenerateGameSaveSignature {
     directoryHash?: string | null;
     zipHash?: string | null;
     directorySize?: number | null;
+}
+export interface IReqGenerateGameSaveSignatureV4 {
+    gameId: string;
+    saveId: string;
+    remark: string;
+    stared: boolean;
+    hostname: string;
+    size: number;
+    createTime: number;
+    directoryHash?: string | null;
+    zipHash?: string | null;
+    directorySize?: number | null;
+}
+export interface IReqGenerateGameSaveSTS {
+    gameId: string;
+    saveId: string;
+    remark: string;
+    stared: boolean;
+    hostname: string;
+    size: number;
+    createTime: number;
+    directoryHash: string;
+    zipHash: string;
+    directorySize: number;
 }
 export interface IReqModifyNickname {
     nickname: string;

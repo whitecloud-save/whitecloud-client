@@ -1,15 +1,10 @@
 import {Injectable} from '@angular/core';
-import {AppDataSource} from '../library/database';
-import {
-  GameActivityDB,
-  GameActivityType,
-  GameActivityData,
-  SaveUploadFailedData,
-} from '../database/game-activity';
-import {GameHistoryDB} from '../database/game-history';
 import {ErrorString} from '../library/error/ErrorString';
 import {NodeTime, UnixTime} from '../library/utility';
 import {UserErrorCode} from './server/api';
+import {GameActivityData, GameActivityDB, GameActivityType, SaveUploadFailedData} from '../../../shared/database/game-activity';
+import {workerAPI} from '../library/api/worker-api-instance';
+import {GameHistoryDB} from '../../../shared/database/game-history';
 
 export interface GameActivity {
   id: string;
@@ -44,12 +39,20 @@ export class GameActivityService {
   constructor() {}
 
   async createActivity(gameId: string, type: GameActivityType, data: GameActivityData, offset = 0): Promise<GameActivityDB> {
-    const activity = new GameActivityDB();
-    activity.gameId = gameId;
-    activity.type = type;
-    activity.data = JSON.stringify(data);
-    activity.createdAt = new Date(NodeTime.now() + offset * 1000);
-    return await AppDataSource.manager.save(activity);
+    const activity = new GameActivityDB({
+      gameId,
+      type,
+      data: JSON.stringify(data),
+      createdAt: new Date(NodeTime.now() + offset * 1000),
+    });
+
+    await workerAPI.db.saveGameActivity(activity);
+    return activity;
+    // activity.gameId = gameId;
+    // activity.type = type;
+    // activity.data = JSON.stringify(data);
+    // activity.createdAt = new Date(NodeTime.now() + offset * 1000);
+    // return await AppDataSource.manager.save(activity);
   }
 
   async saveBackupLocal(gameId: string, offset = 0): Promise<GameActivityDB> {
@@ -66,10 +69,7 @@ export class GameActivityService {
   }
 
   async getActivitiesByGameId(gameId: string): Promise<GameActivity[]> {
-    const activities = await AppDataSource.manager.find(GameActivityDB, {
-      where: {gameId},
-      order: {createdAt: 'DESC'},
-    });
+    const activities = await workerAPI.db.findGameActivities(gameId);
 
     return activities.map(activity => ({
       id: String(activity.id),
@@ -82,10 +82,11 @@ export class GameActivityService {
   }
 
   async getGameHistoryByGameId(gameId: string): Promise<GameHistoryDB[]> {
-    return await AppDataSource.manager.find(GameHistoryDB, {
-      where: {gameId},
-      order: {endTime: 'DESC'},
-    });
+    return workerAPI.db.findGameHistory(gameId);
+    // return await AppDataSource.manager.find(GameHistoryDB, {
+    //   where: {gameId},
+    //   order: {endTime: 'DESC'},
+    // });
   }
 
   async getCombinedActivities(gameId: string): Promise<GameActivity[]> {

@@ -1,14 +1,10 @@
-import path from 'path';
-import {SaveDB} from '../database/save';
-import {AppDataSource} from '../library/database';
+import {PathUtil} from '../library/path-util';
 import {Game} from './game';
-import fs from 'fs';
-import JSZip from 'jszip';
-import {mkdirp} from 'mkdirp';
 import {UnixTime} from '../library/utility';
 import {UserGameSave} from '../service/server/api';
-import {APP_CONFIG} from '../../environments/environment';
 import axios from 'axios';
+import {SaveDB} from '../../../shared/database/save';
+import {workerAPI} from '../library/api/worker-api-instance';
 
 export enum SaveState {
   LocalAndRemote = 1,
@@ -28,11 +24,10 @@ export class Save {
   }
 
   init() {
-    try {
-      fs.accessSync(this.filename);
-    } catch (err) {
-      this.deleted_ = true;
-    }
+    workerAPI.fs.exists(this.filename).then(exists => {
+      if (!exists)
+        this.deleted_ = true;
+    });
   }
 
   removeOssPath() {
@@ -45,16 +40,18 @@ export class Save {
 
     const res = await this.game_.serverService.business.signGameSaveUrl({url: this.ossPath});
 
-    await axios.get(res.url, {responseType: 'arraybuffer'})
-      .then(async (response) => {
-        await mkdirp(this.game.backupSavePath);
-        await fs.promises.writeFile(this.filename, Buffer.from(response.data) as any);
-      });
+    // TODO
+    // await workerAPI.
+    // await axios.get(res.url, {responseType: 'arraybuffer'})
+    //   .then(async (response) => {
+    //     await mkdirp(this.game.backupSavePath);
+    //     await fs.promises.writeFile(this.filename, Buffer.from(response.data) as any);
+    //   });
     this.deleted_ = false;
   }
 
   async save(syncToSerer: boolean) {
-    this.db_ = await AppDataSource.manager.save(this.db_);
+    this.db_ = await workerAPI.db.saveSave(this.db_);
     if (syncToSerer) {
       this.syncToServer();
     }
@@ -91,26 +88,21 @@ export class Save {
   async rollback() {
     if (this.deleted)
       return;
-    await fs.promises.rm(this.game_.savePath, {recursive: true, force: true});
-    await mkdirp(this.game_.savePath);
-    const file = await fs.promises.readFile(this.filename);
-    const zip = await JSZip.loadAsync(file as any);
-    for (const [filePath, zipFile] of Object.entries(zip.files)) {
-      const targetPath = path.join(this.game_.savePath, filePath);
-      if (zipFile.dir) {
-        await mkdirp(targetPath);
-      } else {
-        const decoded = await zipFile.async('nodebuffer');
-        await fs.promises.writeFile(targetPath, decoded as NodeJS.ArrayBufferView);
-      }
-    }
-    await (this.game_ as any).notifyRollbackComplete(this);
+
+    await workerAPI.zip.extractZip({
+      zipFilePath: this.filename,
+      targetPath:  this.game_.savePath,
+    });
+
+    this.game_.updateCurrentSave();
+    this.game_.notifyActivityUpdate();
   }
 
   async delete() {
     if (this.deleted)
       return;
-    await fs.promises.rm(this.filename);
+    await workerAPI.fs.deleteFile(this.filename);
+    // await fs.promises.rm(this.filename);
     this.deleted_ = true;
   }
 
@@ -134,7 +126,7 @@ export class Save {
   }
 
   get filename() {
-    return path.join(this.game_.backupSavePath, this.db_.id + '.zip');
+    return PathUtil.join(this.game_.backupSavePath, this.db_.id + '.zip');
   }
 
   get createTime() {

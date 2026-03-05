@@ -1,14 +1,10 @@
-import { Injectable } from '@angular/core';
-import { ServerService } from './server/server.service';
-import { ClientVersion } from './server/api';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {ServerService} from './server/server.service';
+import {ClientVersion} from './server/api';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {DialogService} from './dialog.service';
-import {app, shell} from '@electron/remote';
-import path from 'path';
-import fs from 'original-fs';
-import crypto from 'crypto';
-import http from 'http';
-import https from 'https';
+import {workerAPI} from '../library/api/worker-api-instance';
+import {mainAPI} from '../library/api/main-api-instance';
 
 export enum UpdateState {
   Idle = 'idle',
@@ -71,7 +67,7 @@ export class UpdateService {
   }
 
   async checkForUpdates(): Promise<UpdateInfo | null> {
-    const currentVersion = app.getVersion();
+    const currentVersion = await mainAPI.app.getVersion();
 
     this.state_.next(UpdateState.Checking);
 
@@ -108,138 +104,149 @@ export class UpdateService {
     this.state_.next(UpdateState.Downloading);
     this.downloadProgress_.next(0);
 
-    try {
-      const updatesDir = path.join('data', 'updates');
+    // TODO
+    return false;
+    // try {
+    //   const updatesDir = path.join('data', 'updates');
 
-      if (!fs.existsSync(updatesDir)) {
-        fs.mkdirSync(updatesDir, { recursive: true });
-      }
+    //   if (!await workerAPI.fs.exists(updatesDir)) {
+    //     await workerAPI.fs.mkdir({
+    //       path: updatesDir,
+    //       options: {
+    //         recursive: true,
+    //       },
+    //     });
+    //   }
 
-      const targetPath = path.join(updatesDir, `update-${version.version}.asar`);
+    //   const targetPath = path.join(updatesDir, `update-${version.version}.asar`);
 
-      if (fs.existsSync(targetPath)) {
-        const isValid = await this.verifyFileHash(targetPath, version.asarHash);
-        if (isValid) {
-          const updateAsarPath = path.join(process.resourcesPath, 'update.asar');
-          fs.copyFileSync(targetPath, updateAsarPath);
-          this.state_.next(UpdateState.ReadyToInstall);
-          return true;
-        }
-        fs.unlinkSync(targetPath);
-      }
+    //   if (fs.existsSync(targetPath)) {
+    //     const isValid = await this.verifyFileHash(targetPath, version.asarHash);
+    //     if (isValid) {
+    //       const updateAsarPath = path.join(process.resourcesPath, 'update.asar');
+    //       fs.copyFileSync(targetPath, updateAsarPath);
+    //       this.state_.next(UpdateState.ReadyToInstall);
+    //       return true;
+    //     }
+    //     fs.unlinkSync(targetPath);
+    //   }
 
-      const tempPath = path.join(updatesDir, `update-${version.version}.asar.tmp`);
-      if (fs.existsSync(tempPath)) {
-        fs.unlinkSync(tempPath);
-      }
+    //   const tempPath = path.join(updatesDir, `update-${version.version}.asar.tmp`);
+    //   if (fs.existsSync(tempPath)) {
+    //     fs.unlinkSync(tempPath);
+    //   }
 
-      await this.downloadFile(version.asarUrl, tempPath, version.asarHash);
+    //   await this.downloadFile(version.asarUrl, tempPath, version.asarHash);
 
-      fs.renameSync(tempPath, targetPath);
-      this.state_.next(UpdateState.ReadyToInstall);
-      return true;
-    } catch (error) {
-      console.error('下载更新失败:', error);
-      this.state_.next(UpdateState.Idle);
-      return false;
-    }
+    //   fs.renameSync(tempPath, targetPath);
+    //   this.state_.next(UpdateState.ReadyToInstall);
+    //   return true;
+    // } catch (error) {
+    //   console.error('下载更新失败:', error);
+    //   this.state_.next(UpdateState.Idle);
+    //   return false;
+    // }
   }
 
-  private verifyFileHash(filePath: string, expectedHash: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const hash = crypto.createHash('sha1');
-      const stream = fs.createReadStream(filePath);
+  private async verifyFileHash(filePath: string, expectedHash: string): Promise<boolean> {
+    // TODO
+    return false;
 
-      stream.on('data', (chunk) => {
-        hash.update(chunk);
-      });
+    // return new Promise((resolve, reject) => {
+    //   const hash = crypto.createHash('sha1');
+    //   const stream = fs.createReadStream(filePath);
 
-      stream.on('end', () => {
-        const fileHash = hash.digest('hex').substring(0, 10);
-        stream.destroy();
-        console.log(fileHash, expectedHash);
-        resolve(fileHash === expectedHash);
-      });
+    //   stream.on('data', (chunk) => {
+    //     hash.update(chunk);
+    //   });
 
-      stream.on('error', (err) => {
-        stream.destroy();
-        reject(err);
-      });
-    });
+    //   stream.on('end', () => {
+    //     const fileHash = hash.digest('hex').substring(0, 10);
+    //     stream.destroy();
+    //     console.log(fileHash, expectedHash);
+    //     resolve(fileHash === expectedHash);
+    //   });
+
+    //   stream.on('error', (err) => {
+    //     stream.destroy();
+    //     reject(err);
+    //   });
+    // });
   }
 
-  private downloadFile(url: string, destPath: string, expectedHash: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const file = fs.createWriteStream(destPath);
-      const hash = crypto.createHash('sha1');
+  private async downloadFile(url: string, destPath: string, expectedHash: string): Promise<void> {
+    // return new Promise((resolve, reject) => {
+    //   const file = fs.createWriteStream(destPath);
+    //   const hash = crypto.createHash('sha1');
 
-      const protocol = url.startsWith('https://') ? https : http;
-      const request = protocol.get(url, (response: any) => {
-        if (response.statusCode === 301 || response.statusCode === 302) {
-          response.destroy();
-          file.destroy();
-          fs.unlinkSync(destPath);
-          this.downloadFile(response.headers.location, destPath, expectedHash)
-            .then(resolve)
-            .catch(reject);
-          return;
-        }
+    //   const protocol = url.startsWith('https://') ? https : http;
+    //   const request = protocol.get(url, (response: any) => {
+    //     if (response.statusCode === 301 || response.statusCode === 302) {
+    //       response.destroy();
+    //       file.destroy();
+    //       fs.unlinkSync(destPath);
+    //       this.downloadFile(response.headers.location, destPath, expectedHash)
+    //         .then(resolve)
+    //         .catch(reject);
+    //       return;
+    //     }
 
-        const totalSize = parseInt(response.headers['content-length'], 10);
-        let downloadedSize = 0;
+    //     const totalSize = parseInt(response.headers['content-length'], 10);
+    //     let downloadedSize = 0;
 
-        response.on('data', (chunk: Buffer) => {
-          downloadedSize += chunk.length;
-          hash.update(chunk);
-          if (totalSize) {
-            const progress = Math.round((downloadedSize / totalSize) * 100);
-            this.downloadProgress_.next(progress);
-          }
-        });
+    //     response.on('data', (chunk: Buffer) => {
+    //       downloadedSize += chunk.length;
+    //       hash.update(chunk);
+    //       if (totalSize) {
+    //         const progress = Math.round((downloadedSize / totalSize) * 100);
+    //         this.downloadProgress_.next(progress);
+    //       }
+    //     });
 
-        response.pipe(file);
+    //     response.pipe(file);
 
-        file.on('finish', () => {
-          file.close();
-          const fileHash = hash.digest('hex').substring(0, 10);
+    //     file.on('finish', () => {
+    //       file.close();
+    //       const fileHash = hash.digest('hex').substring(0, 10);
 
-          if (fileHash !== expectedHash) {
-            fs.unlinkSync(destPath);
-            reject(new Error(`哈希验证失败: 期望 ${expectedHash}, 实际 ${fileHash}`));
-            return;
-          }
+    //       if (fileHash !== expectedHash) {
+    //         fs.unlinkSync(destPath);
+    //         reject(new Error(`哈希验证失败: 期望 ${expectedHash}, 实际 ${fileHash}`));
+    //         return;
+    //       }
 
-          resolve();
-        });
-      });
+    //       resolve();
+    //     });
+    //   });
 
-      request.on('error', (err: Error) => {
-        file.destroy();
-        if (fs.existsSync(destPath)) {
-          try {
-            fs.unlinkSync(destPath);
-          } catch {
-            // ignore
-          }
-        }
-        reject(err);
-      });
+    //   request.on('error', (err: Error) => {
+    //     file.destroy();
+    //     if (fs.existsSync(destPath)) {
+    //       try {
+    //         fs.unlinkSync(destPath);
+    //       } catch {
+    //         // ignore
+    //       }
+    //     }
+    //     reject(err);
+    //   });
 
-      file.on('error', (err: Error) => {
-        file.destroy();
-        if (fs.existsSync(destPath)) {
-          try {
-            fs.unlinkSync(destPath);
-          } catch {
-            // ignore
-          }
-        }
-        reject(err);
-      });
-    });
+    //   file.on('error', (err: Error) => {
+    //     file.destroy();
+    //     if (fs.existsSync(destPath)) {
+    //       try {
+    //         fs.unlinkSync(destPath);
+    //       } catch {
+    //         // ignore
+    //       }
+    //     }
+    //     reject(err);
+    //   });
+    // });
   }
 
   openWebsite(): void {
-    shell.openExternal('https://whitecloud.xyyaya.com');
+    mainAPI.shell.openExternal('https://whitecloud.xyyaya.com');
+    // shell.openExternal('https://whitecloud.xyyaya.com');
   }
 }

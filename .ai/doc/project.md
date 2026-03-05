@@ -586,6 +586,93 @@ ng generate module     # 生成模块
 
 ---
 
+## Node API 隔离架构（2025-01-02）
+
+### 架构概述
+
+项目已实施 Node API 隔离架构，将所有 Node API 调用和数据库操作从 Angular 渲染进程迁移到 Worker 进程，实现渲染进程与 Node 环境的完全解耦。
+
+### 核心组件
+
+#### 1. 共享数据库实体 (`src/shared/database/`)
+- `game.ts` - LocalGameDB 实体
+- `save.ts` - SaveDB 实体
+- `game-history.ts` - GameHistoryDB 实体
+- `game-guide.ts` - GameGuideDB 实体
+- `game-activity.ts` - GameActivityDB 实体
+
+#### 2. Worker 进程 Handler (`src/electron/handler/worker-handler/`)
+共 9 个 Handler，49 个方法：
+- **worker-fs-handler.ts** - 文件系统操作（10个方法）
+- **worker-zip-handler.ts** - ZIP 压缩（2个方法）
+- **worker-crypto-handler.ts** - 哈希计算（4个方法）
+- **worker-database-handler.ts** - 数据库操作（15个方法）
+- **worker-process-handler.ts** - 进程管理（2个方法）
+- **worker-shell-handler.ts** - Shell 操作（2个方法）
+- **worker-icon-handler.ts** - 图标提取（1个方法）
+- **worker-update-handler.ts** - 更新管理（3个方法）
+- **worker-path-handler.ts** - 路径处理（10个方法）
+
+#### 3. Main 进程 Handler (`src/electron/handler/main-handler/`)
+共 3 个 Handler，11 个方法：
+- **main-dialog-handler.ts** - 对话框（2个方法）
+- **main-app-handler.ts** - 应用 API（6个方法）
+- **main-window-handler.ts** - 窗口管理（3个方法）
+
+#### 4. API 单例类 (`src/angular/app/library/`)
+- **worker-api-instance.ts** - WorkerAPI 单例，提供 Worker Handler 访问
+- **main-api-instance.ts** - MainAPI 单例，提供 Main Handler 访问
+
+### 使用示例
+
+```typescript
+// WorkerAPI 使用
+import {workerAPI} from '../library/worker-api-instance';
+
+const exists = await workerAPI.fs.exists(filePath);
+const hash = await workerAPI.crypto.calculateFileHash(filePath);
+const game = await workerAPI.db.saveGame(gameData);
+await workerAPI.zip.createZipFromDirectory({dirPath, zipPath});
+
+// MainAPI 使用
+import {mainAPI} from '../library/main-api-instance';
+
+const result = await mainAPI.dialog.showOpenFileDialog(options);
+const version = await mainAPI.app.getVersion();
+const windowId = await mainAPI.window.createGameGuideWindow(gameId, title);
+```
+
+### 架构优势
+
+1. **完全隔离**：渲染进程不依赖任何 Node 模块
+2. **类型安全**：完整的 TypeScript 类型支持
+3. **命名空间**：清晰的 API 组织结构（fs, db, crypto等）
+4. **单例模式**：不依赖 Angular DI，可在任何地方使用
+5. **性能优化**：ZIP 使用文件流，减少内存占用
+6. **数据库集中**：所有数据库操作在 Worker 进程统一管理
+
+### 迁移状态
+
+**已完成**：
+- ✅ 基础设施搭建（数据库实体、Handler、API单例）
+- ✅ Worker 进程架构（MessageRoute.callback）
+- ✅ Main 进程 IPC 注册
+
+**进行中**：
+- 🔄 Angular 代码迁移（工具库、服务层、实体层）
+
+**待完成**：
+- ⏳ 表单验证器改为异步
+- ⏳ 全面功能测试
+
+### 相关文档
+
+- [迁移指南](../openspec/changes/node-isolation/migration-guide.md)
+- [提案文档](../openspec/changes/node-isolation/proposal.md)
+- [设计文档](../openspec/changes/node-isolation/design.md)
+
+---
+
 ## 版本信息
 
 - **当前版本**：0.0.0

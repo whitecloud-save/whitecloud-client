@@ -1,47 +1,39 @@
 import {enableProdMode} from '@angular/core';
-import {Client, type IWorkerChannel} from './app/library/worker-api';
-import {type WorkerHandler} from '../electron/handler/worker-handler';
+import {APP_CONFIG} from './environments/environment';
+import {mainAPI} from './app/library/api/main-api-instance';
+import {AppModule} from './app/app.module';
+import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
+import {GameGuideModule} from './app/game-guide.module';
+import {App} from './app/library/utility';
 
-declare const window: ClientWindow;
-
-export interface ClientWindow {
-  workerChannel: IWorkerChannel;
+if (APP_CONFIG.production) {
+  enableProdMode();
 }
-
-// if (APP_CONFIG.production) {
-//   enableProdMode();
-// }
 
 export const GuideGameId = Symbol('guid-game-id');
 
 (async () => {
-  await window.workerChannel.ready();
+  const value = await mainAPI.app.startApplication();
+  if (!value)
+    return;
+  App.init(value.path, value.hostname);
 
-  const client = new Client(window.workerChannel);
-  const api = client.createApi<WorkerHandler>();
-
-  console.log('call api.test');
-  const res = await api.test(undefined);
-  console.log(res);
-
-  // await connect();
-  // const value = await ipcRenderer.invoke('start');
-  // switch(value.module) {
-  //   case 'main':
-  //     platformBrowserDynamic()
-  //       .bootstrapModule(AppModule, {
-  //         preserveWhitespaces: false,
-  //       })
-  //       .catch(err => console.error(err));
-  //     break;
-  //   case 'guide':
-  //     platformBrowserDynamic(
-  //       [{provide: GuideGameId, useValue: value.gameId}]
-  //     )
-  //       .bootstrapModule(GameGuideModule, {
-  //         preserveWhitespaces: false,
-  //       })
-  //       .catch(err => console.error(err));
-  //     break;
-  // }
+  switch(value.module) {
+    case 'main':
+      platformBrowserDynamic()
+        .bootstrapModule(AppModule, {
+          preserveWhitespaces: false,
+        })
+        .catch(err => console.error(err));
+      break;
+    case 'guide':
+      platformBrowserDynamic(
+        [{provide: GuideGameId, useValue: value.data}]
+      )
+        .bootstrapModule(GameGuideModule, {
+          preserveWhitespaces: false,
+        })
+        .catch(err => console.error(err));
+      break;
+  }
 })();

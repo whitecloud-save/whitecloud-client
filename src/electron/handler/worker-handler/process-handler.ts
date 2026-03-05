@@ -1,0 +1,40 @@
+import {Route} from '@sora-soft/framework';
+import {spawn} from 'child_process';
+import binding from '@whitecloud-save/binding-addon';
+
+export class ProcessHandler extends Route {
+  @Route.method
+  async startGame(args: { exePath: string; cwd?: string }): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const proc = spawn(args.exePath, [], {
+        detached: true,
+        cwd: args.cwd,
+        stdio: 'ignore',
+      });
+
+      proc.on('error', reject);
+      proc.unref();
+      resolve();
+    });
+  }
+
+  @Route.method
+  async startGameWithLE(args: { lePath: string; profile: string; exePath: string }): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const proc = spawn(args.lePath, [args.profile, args.exePath], {
+        detached: true,
+        stdio: 'ignore',
+      });
+
+      proc.on('error', reject);
+      proc.unref();
+      resolve();
+    });
+  }
+
+  @Route.method
+  async listProcesses(body: void) {
+    const list = binding.listProcesses();
+    return list;
+  }
+}

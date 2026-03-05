@@ -10,10 +10,10 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "files": [
-    "./main.ts"
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "./environments/environment.prod.ts"
   ]
-  // "include": [
-  //   "./**/*.ts"
-  // ]
 }

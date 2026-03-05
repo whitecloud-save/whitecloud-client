@@ -2,12 +2,8 @@ import axios from 'axios';
 import {UserGameSave} from '../service/server/api';
 import {Game} from './game';
 import {Save, SaveState} from './save';
-import {APP_CONFIG} from '../../environments/environment';
-import {mkdirp} from 'mkdirp';
-import path from 'path';
-import fs from 'fs/promises';
-import {AppDataSource} from '../library/database';
-import {SaveDB} from '../database/save';
+import {PathUtil} from '../library/path-util';
+import {SaveDB} from '../../../shared/database/save';
 
 export class RemoteSave {
   constructor(game: Game, data: UserGameSave) {
@@ -19,14 +15,14 @@ export class RemoteSave {
     const res = await this.game_.serverService.business.signGameSaveUrl({url: this.data_.ossPath});
     console.log(res);
 
-    await axios.get(res.url, {responseType: 'arraybuffer'})
-      .then(async (response) => {
-        await mkdirp(this.game.backupSavePath);
-        await fs.writeFile(this.filename, Buffer.from(response.data) as NodeJS.ArrayBufferView);
-      });
+    // TODO
+    // await axios.get(res.url, {responseType: 'arraybuffer'})
+    //   .then(async (response) => {
+    //     await mkdirp(this.game.backupSavePath);
+    //     await fs.writeFile(this.filename, Buffer.from(response.data) as NodeJS.ArrayBufferView);
+    //   });
 
-    const saveRepo = AppDataSource.getRepository(SaveDB);
-    const saveDB = saveRepo.create({
+    const saveDB = new SaveDB({
       id: this.id,
       gameId: this.game.id,
       createTime: this.data_.createTime,
@@ -46,7 +42,7 @@ export class RemoteSave {
   }
 
   get filename() {
-    return path.join(this.game_.backupSavePath, this.id + '.zip');
+    return PathUtil.join(this.game_.backupSavePath, this.id + '.zip');
   }
 
   syncFromServer(save: UserGameSave) {

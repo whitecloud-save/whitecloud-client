@@ -1,36 +1,71 @@
 import {contextBridge, ipcRenderer} from 'electron';
 
-let messagePort: MessagePort | null = null;
-let portReadyResolve: ((port: MessagePort) => void) | null = null;
-const portReadyPromise = new Promise<MessagePort>((resolve) => {
-  portReadyResolve = resolve;
+let workerMessagePort: MessagePort | null = null;
+let workerProtReadyResolve: ((port: MessagePort) => void) | null = null;
+const workerPortReadyPromise = new Promise<MessagePort>((resolve) => {
+  workerProtReadyResolve = resolve;
 });
 
-ipcRenderer.on('port-to-renderer', (event) => {
-  messagePort = event.ports[0];
-  messagePort.start();
-  portReadyResolve?.(messagePort);
+let mainMessagePort: MessagePort | null = null;
+let mainProtReadyResolve: ((port: MessagePort) => void) | null = null;
+const mainPortReadyPromise = new Promise<MessagePort>((resolve) => {
+  mainProtReadyResolve = resolve;
+});
+
+
+ipcRenderer.on('worker-port-init', (event) => {
+  workerMessagePort = event.ports[0];
+  workerMessagePort.start();
+  workerProtReadyResolve?.(workerMessagePort);
+});
+
+ipcRenderer.on('main-port-init', (event) => {
+  mainMessagePort = event.ports[0];
+  mainMessagePort.start();
+  mainProtReadyResolve?.(mainMessagePort);
 });
 
 contextBridge.exposeInMainWorld('workerChannel', {
   async ready(): Promise<void> {
-    await portReadyPromise;
+    await workerPortReadyPromise;
   },
 
   postMessage(data: any): void {
-    console.log('postMessage', data);
-    if (!messagePort) {
-      throw new Error('MessagePort is not ready');
+    if (!workerMessagePort) {
+      throw new Error('WorkerMessagePort is not ready');
     }
-    messagePort.postMessage(data);
+    workerMessagePort.postMessage(data);
   },
 
   onMessage(callback: (data: any) => void): void {
-    if (!messagePort) {
-      throw new Error('MessagePort is not ready');
+    if (!workerMessagePort) {
+      throw new Error('WorkerMessagePort is not ready');
     }
-    messagePort.onmessage = (event) => {
+    workerMessagePort.onmessage = (event) => {
       callback(event.data);
     };
   },
+
 });
+
+contextBridge.exposeInMainWorld('mainChannel', {
+  async ready(): Promise<void> {
+    await mainPortReadyPromise;
+  },
+
+  postMessage(data: any): void {
+    if (!mainMessagePort) {
+      throw new Error('MainMessagePort is not ready');
+    }
+    mainMessagePort.postMessage(data);
+  },
+
+  onMessage(callback: (data: any) => void): void {
+    if (!mainMessagePort) {
+      throw new Error('MainMessagePort is not ready');
+    }
+    mainMessagePort.onmessage = (event) => {
+      callback(event.data);
+    };
+  },
+})

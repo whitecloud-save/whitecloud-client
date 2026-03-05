@@ -3,10 +3,10 @@ import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {IconService} from '../../../../../service/icon.service';
 import {GamePageService} from '../../game-page.service';
 import {Game} from '../../../../../entity/game';
-import {dialog} from '@electron/remote';
-import fs from 'fs/promises';
-import path from 'path';
+import {PathUtil} from '../../../../../library/path-util';
 import {GameUtil, GameValidators} from '../../../../../library/utility';
+import {workerAPI} from '../../../../../library/api/worker-api-instance';
+import {mainAPI} from '../../../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-game-basic-setting',
@@ -42,8 +42,8 @@ export class GameBasicSettingComponent implements OnInit {
 
     this.basicForm = new FormGroup({
       name: new FormControl(this.game.name, {validators: [Validators.required], updateOn: 'blur'}),
-      savePath: new FormControl(this.game.savePath, {validators: [Validators.required, GameValidators.folder], updateOn: 'blur'}),
-      gamePath: new FormControl(this.game.gamePath, {validators: [Validators.required, GameValidators.folder], updateOn: 'blur'}),
+      savePath: new FormControl(this.game.savePath, {validators: [Validators.required], asyncValidators: [GameValidators.folder], updateOn: 'blur'}),
+      gamePath: new FormControl(this.game.gamePath, {validators: [Validators.required], asyncValidators: [GameValidators.folder], updateOn: 'blur'}),
       exeFile: new FormControl(this.game.exeFile, {validators: [Validators.required]}),
       coverImgUrl: new FormControl(this.game.coverImgUrl, {validators: [Validators.required]}),
       autoOpenGuide: new FormControl(this.game.autoOpenGuide),
@@ -90,29 +90,26 @@ export class GameBasicSettingComponent implements OnInit {
 
   async updateExePathSelection(dirPath: string) {
     this.exeSelections = [];
-    try {
-      await fs.access(dirPath);
-    } catch (err) {
+    if (!workerAPI.fs.exists(dirPath))
       return;
-    }
-    const files = await fs.readdir(dirPath);
+    const files = await workerAPI.fs.readdir(dirPath);
 
     for (const file of files) {
-      if (path.extname(file) !== '.exe')
+      if (PathUtil.extname(file) !== '.exe')
         continue;
 
-      const stat = await fs.lstat(path.join(dirPath, file));
-      if (stat.isFile()) {
+      const stat = await workerAPI.fs.lstat(PathUtil.join(dirPath, file));
+      if (stat.isFile) {
         this.exeSelections.push(file);
       }
     }
   }
 
   async openSavePathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '请选择存档文件夹',
-    });
+    })
     if (res.canceled) {
       return;
     }
@@ -122,7 +119,7 @@ export class GameBasicSettingComponent implements OnInit {
   }
 
   async openGamePathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '请选择游戏文件夹',
     });

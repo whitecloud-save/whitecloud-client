@@ -7,7 +7,6 @@
     "sourceMap": false
   },
   "files": [
-    "preload.ts",
-    "waiter.ts"
+    "preload.ts"
   ]
 }

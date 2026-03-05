@@ -1,7 +1,8 @@
 import {Component} from '@angular/core';
 import {IconService} from '../../../../service/icon.service';
 import {GameImportService} from '../game-import.service';
-import {app, dialog} from '@electron/remote';
+import {App} from '../../../../library/utility';
+import {mainAPI} from '../../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-game-detail-form',
@@ -20,12 +21,12 @@ export class GameDetailFormComponent {
   }
 
   async getPath() {
-    this.documentPath = app.getPath('documents');
-    this.appDataPath = app.getPath('appData');
+    this.documentPath = App.getPath('documents');
+    this.appDataPath = App.getPath('appData');
   }
 
   async openSavePathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '请选择游戏存档文件夹',
     });

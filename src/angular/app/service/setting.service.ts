@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
-import fs from 'fs/promises';
-import path from 'path';
+import {PathUtil} from '../library/path-util';
 import xml2js from 'xml2js';
+import {workerAPI} from '../library/api/worker-api-instance';
 
 @Injectable({
   providedIn: 'root',
@@ -45,7 +45,7 @@ export class SettingService {
 
   async updateLEProfile() {
     if (this.useLE && this.LEExePath) {
-      const xml = await fs.readFile(path.join(path.dirname(this.LEExePath), 'LEConfig.xml'));
+      const xml = await workerAPI.fs.readFile(PathUtil.join(PathUtil.dirname(this.LEExePath), 'LEConfig.xml'));
       const parser = new xml2js.Parser();
       const profile = await parser.parseStringPromise(xml);
 

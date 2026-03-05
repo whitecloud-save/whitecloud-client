@@ -2,7 +2,7 @@ import {Component, Input, OnInit, forwardRef} from '@angular/core';
 import axios from 'axios';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {IconService} from '../../../service/icon.service';
-import {dialog} from '@electron/remote';
+import {mainAPI} from '../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-image-selector',
@@ -96,7 +96,7 @@ export class ImageSelectorComponent implements ControlValueAccessor, OnInit {
   }
 
   async openImageSelectDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openFile'],
       title: '请选择游戏封面图片',
       filters: [

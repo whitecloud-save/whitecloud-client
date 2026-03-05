@@ -3,11 +3,11 @@ import {NZ_MODAL_DATA, NzModalRef} from 'ng-zorro-antd/modal';
 import {RemoteGame} from '../../../entity/remote-game';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {IconService} from '../../../service/icon.service';
-import {dialog} from '@electron/remote';
-import path from 'path';
+import {PathUtil} from '../../../library/path-util';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {GameService} from '../../../service/game.service';
 import {ErrorHandlingUtil} from '../../../service/error-handling-util';
+import {mainAPI} from '../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-sync-remote-game-dialog',
@@ -37,7 +37,7 @@ export class SyncRemoteGameDialogComponent {
   }
 
   async openGamePathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openFile'],
       title: `请选择${this.nzModalData.game.exePath}`,
       filters: [{
@@ -53,7 +53,7 @@ export class SyncRemoteGameDialogComponent {
       return;
 
     const filePath = res.filePaths[0];
-    if (path.basename(filePath) !== this.nzModalData.game.exePath) {
+    if (PathUtil.basename(filePath) !== this.nzModalData.game.exePath) {
       this.message.error('文件名错误，请选择：' + this.nzModalData.game.exePath);
       return;
     }
@@ -64,7 +64,7 @@ export class SyncRemoteGameDialogComponent {
   }
 
   async openSavePathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '请选择游戏存档文件夹',
     });
@@ -85,7 +85,7 @@ export class SyncRemoteGameDialogComponent {
     if (!exePath)
       return;
 
-    const gamePath = path.dirname(exePath);
+    const gamePath = PathUtil.dirname(exePath);
 
     this.gameService.importRemoteGame(this.nzModalData.game, {
       savePath,

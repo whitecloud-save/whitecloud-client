@@ -7,13 +7,16 @@ import {spawn} from 'child_process';
 import * as semver from 'semver';
 import {fileURLToPath} from 'url';
 import {dirname} from 'path';
+import {DialogHandler} from './handler/main-handler/dialog-handler.js';
+import {AppHandler} from './handler/main-handler/app-handler.js';
+import {WindowHandler} from './handler/main-handler/window-handler.js';
+import {ShellHandler} from './handler/main-handler/shell-handler.js';
+import {MenuHandler} from './handler/main-handler/menu-handler.js';
+import {ElectronMessageListener} from './lib/electron-message-listener.js';
+import {MessageRoute} from './lib/message-route.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// import remote from '@electron/remote';
-// const remote = require('@electron/remote/main');
-
-// remote.initialize();
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -23,11 +26,13 @@ if (!gotTheLock) {
 
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let worker: Electron.UtilityProcess | null = null;
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
 
-const createWindow = async (): Promise<BrowserWindow> => {
+export const childWinMap = new Map<number, {uuid: string; childWin: BrowserWindow}>();
 
+const createWindow = async (): Promise<BrowserWindow> => {
   // const size = screen.getPrimaryDisplay().workAreaSize;
 
   // Create the browser window.
@@ -36,10 +41,10 @@ const createWindow = async (): Promise<BrowserWindow> => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, '../preload', 'preload.js'),
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
-      allowRunningInsecureContent: true,
-      webSecurity: false,
+      allowRunningInsecureContent: false,
+      webSecurity: true,
       devTools: serve,
     },
     title: 'Whitecloud',
@@ -80,24 +85,36 @@ const createWindow = async (): Promise<BrowserWindow> => {
     }
   });
 
-  // 2. 启动 UtilityProcess 工具进程 (纯 Node 环境)
-  const worker = utilityProcess.fork(path.join(__dirname, 'worker.js'));
+  win.webContents.on('did-finish-load', () => {
+    if (!worker) {
+      console.error('Worker process is not initialized');
+      return;
+    }
 
-  // 3. 创建直连通道！包含两个配对的端口 port1 和 port2
-  const { port1, port2 } = new MessageChannelMain();
+    const workerChannel = new MessageChannelMain();
 
-  // 4. 等待网页加载完成后，把 port1 扔给渲染进程
-  win.webContents.once('did-finish-load', () => {
-    // 必须放在数组里通过 IPC 发送
-    win!.webContents.postMessage('port-to-renderer', null, [port1]);
-  });
+    win!.webContents.postMessage('worker-port-init', null, [workerChannel.port1]);
 
-  // 5. 把 port2 扔给 UtilityProcess
-  worker.postMessage({ command: 'init-port' }, [port2]);
+    worker.postMessage({
+      command: 'init-port',
+      dbPath: path.join(app.isPackaged ? process.resourcesPath : app.getAppPath(), 'data', 'db.sqlite')
+    }, [workerChannel.port2]);
 
-  // 可选：监听 worker 崩溃，方便热更或错误恢复
-  worker.on('exit', (code) => {
-    console.log(`Worker 进程已退出，退出码: ${code}`);
+    const mainChannel = new MessageChannelMain();
+    win!.webContents.postMessage('main-port-init', null, [mainChannel.port1]);
+
+    const mainListener = new ElectronMessageListener(
+      mainChannel.port2,
+      MessageRoute.callback({
+        dialog: new DialogHandler(),
+        app:  new AppHandler(win!.id, 'main', null),
+        window: new WindowHandler(),
+        shell: new ShellHandler(),
+        menu: new MenuHandler(),
+      })
+    );
+    mainListener.startListen();
+    mainChannel.port2.start();
   });
 
   return win;
@@ -218,6 +235,11 @@ try {
       }
     }
 
+    worker = utilityProcess.fork(path.join(__dirname, 'worker.js'));
+    worker.on('exit', (code) => {
+      console.log(`Worker 进程已退出，退出码: ${code}`);
+    });
+
     setTimeout(async () => {
       await createWindow();
       createTray();
@@ -234,25 +256,6 @@ try {
     if (win === null) {
       createWindow();
     }
-  });
-
-  const childWinMap = new Map<number, {uuid: string; childWin: BrowserWindow}>();
-  ipcMain.handle('start', (event) => {
-    const winId = event.sender.id;
-    if (winId === win?.webContents.id)
-      return {
-        module: 'main',
-      };
-
-    const data = childWinMap.get(winId);
-    if (data) {
-      return {
-        module: 'guide',
-        gameId: data.uuid,
-      };
-    }
-
-    return null;
   });
 
   ipcMain.handle('setTop', (event, value) => {
@@ -344,6 +347,7 @@ try {
   });
 
 } catch (e) {
+  console.log(e);
   // Catch Error
   // throw e;
 }

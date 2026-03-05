@@ -1,12 +1,11 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
-import {app} from '@electron/remote';
 import {SettingService} from '../../../../service/setting.service';
 import {UpdateService, UpdateState} from '../../../../service/update.service';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
-import {ipcRenderer} from 'electron';
 import {DialogService} from '../../../../service/dialog.service';
+import {mainAPI} from '../../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-basic-setting',
@@ -15,11 +14,11 @@ import {DialogService} from '../../../../service/dialog.service';
 })
 export class BasicSettingComponent {
 
-  version: string;
+  version: string = '0.0.0';
   sliderMarks = { 10: '10MB', 50: '50MB', 100: '100MB' };
   UpdateState = UpdateState;
 
-  openWithSystem = new FormControl({value: app.getLoginItemSettings().openAtLogin, disabled: !app.isPackaged});
+  openWithSystem = new FormControl();
   globalSaveBackupLimit = new FormControl(100);
   basicForm = new FormGroup({
     openWithSystem: this.openWithSystem,
@@ -33,23 +32,31 @@ export class BasicSettingComponent {
     private modal: NzModalService,
     private dialogService: DialogService,
   ) {
-    this.openWithSystem.valueChanges.subscribe((value) => {
-      if (value === null)
-        return;
-      app.setLoginItemSettings({
-        openAtLogin: value,
+    mainAPI.app.getLoginItemSettings().then((res) => {
+      this.openWithSystem = new FormControl({value: res.openAtLogin, disabled: false});
+      this.openWithSystem.valueChanges.subscribe((value) => {
+        if (value === null)
+          return;
+
+        mainAPI.app.setLoginItemSettings({
+          openAtLogin: value,
+        });
+      });
+
+      this.globalSaveBackupLimit.setValue(this.settingService.globalSaveBackupLimit);
+      this.globalSaveBackupLimit.valueChanges.subscribe((value) => {
+        if (value === null)
+          return;
+        this.settingService.globalSaveBackupLimit = value;
+        this.settingService.save();
       });
     });
 
-    this.globalSaveBackupLimit.setValue(this.settingService.globalSaveBackupLimit);
-    this.globalSaveBackupLimit.valueChanges.subscribe((value) => {
-      if (value === null)
-        return;
-      this.settingService.globalSaveBackupLimit = value;
-      this.settingService.save();
+    mainAPI.app.getVersion().then(res => {
+      this.version = res;
     });
 
-    this.version = app.getVersion();
+    // this.version = app.getVersion();
   }
 
   async checkForUpdates() {
@@ -80,7 +87,8 @@ export class BasicSettingComponent {
       nzOkText: '立即重启',
       nzCancelText: '稍后',
       nzOnOk: () => {
-        ipcRenderer.invoke('quit-and-install');
+        // TODO
+        // ipcRenderer.invoke('quit-and-install');
       },
     });
   }

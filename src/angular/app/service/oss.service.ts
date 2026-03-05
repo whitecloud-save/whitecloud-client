@@ -1,13 +1,14 @@
 import {Injectable} from '@angular/core';
 import {ServerService} from './server/server.service';
 import {v4} from 'uuid';
-import fs from 'fs/promises';
+// import fs from 'fs/promises';
 import axios from 'axios';
 import {APP_CONFIG} from '../../environments/environment';
 import {BaseError} from '../library/error/BaseError';
 import {ErrorCode} from '../library/error/ErrorCode';
 import {Save} from '../entity/save';
 import {ConnectionStateService} from './connection-state.service';
+import {workerAPI} from '../library/api/worker-api-instance';
 
 interface IUploadFormData {
   name: string;
@@ -112,7 +113,7 @@ export class OssService {
     const urlPath = new URL(url);
     switch(urlPath.protocol) {
       case 'file:': {
-        return fs.readFile(decodeURI(urlPath.pathname.slice(1)));
+        return workerAPI.fs.readFile(decodeURI(urlPath.pathname.slice(1)));
       }
       case 'oss:': {
         const res = await axios.get(`${APP_CONFIG.ossEndpoint}${urlPath.pathname}`, {responseType: 'arraybuffer'});

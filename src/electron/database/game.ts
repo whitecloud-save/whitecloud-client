@@ -6,6 +6,13 @@ export interface IGameExtraSetting {
 
 @Entity()
 export class LocalGameDB {
+  constructor(data?: Partial<LocalGameDB>) {
+    if (!data)
+      return;
+
+    Object.assign(this, data);
+  }
+
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

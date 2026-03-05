@@ -18,7 +18,16 @@
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "allowedCommonJsDependencies": [
-              "rxjs"
+              "rxjs",
+              "xml2js",
+              "moment",
+              "path-browserify",
+              "qrcode",
+              "crypto-js/sha1",
+              "crypto-js/sha256",
+              "debug",
+              "buffer",
+              "sha.js"
             ],
             "customWebpackConfig": {
               "path": "./angular-webpack.config.js",

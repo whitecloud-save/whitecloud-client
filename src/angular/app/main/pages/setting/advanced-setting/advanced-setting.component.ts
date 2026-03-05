@@ -2,8 +2,8 @@ import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {SettingService} from '../../../../service/setting.service';
 import {IconService} from '../../../../service/icon.service';
-import {dialog} from '@electron/remote';
 import {GameValidators} from '../../../../library/utility';
+import {mainAPI} from '../../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-advanced-setting',
@@ -27,7 +27,7 @@ export class AdvancedSettingComponent {
       LEExePath: new FormControl({
         value: settingService.LEExePath,
         disabled: !settingService.useLE,
-      }, {validators: [GameValidators.file]}),
+      }, {asyncValidators: [GameValidators.file]}),
     });
 
     this.basicForm.controls.useLE.valueChanges.subscribe((value) => {
@@ -53,7 +53,7 @@ export class AdvancedSettingComponent {
   }
 
   async openLEExePathPathDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openFile'],
       title: '请选择LEProc.exe',
       filters: [{

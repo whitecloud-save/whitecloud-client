@@ -2,6 +2,13 @@ import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 
 @Entity()
 export class SaveDB {
+  constructor(data?: Partial<SaveDB>) {
+    if (!data)
+      return;
+
+    Object.assign(this, data);
+  }
+
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

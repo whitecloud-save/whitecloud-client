@@ -1,6 +1,6 @@
 import {Context, IListenerInfo, Listener, ListenerCallback} from "@sora-soft/framework";
+import {ElectronMessageConnector} from './electron-message-connector.js';
 import {MessagePortMain} from 'electron';
-import {ElectronMessageConnector} from './ElectronMessageConnector.js';
 
 export class ElectronMessageListener extends Listener {
   constructor(port: MessagePortMain, callback: ListenerCallback) {
@@ -19,8 +19,15 @@ export class ElectronMessageListener extends Listener {
     return this.metaData;
   }
 
-  protected shutdown(): Promise<void> {
-    throw new Error("Method not implemented.");
+  protected async shutdown(): Promise<void> {
+    if (this.messagePort_) {
+      this.messagePort_.close();
+      this.messagePort_ = undefined;
+    }
+  }
+
+  public async close(): Promise<void> {
+    await this.shutdown();
   }
 
   get metaData(): IListenerInfo {

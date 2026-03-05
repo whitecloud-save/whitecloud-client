@@ -49,6 +49,7 @@ export class AppModule {
   }
 
   async startup() {
+    console.log('startup');
     await this.settingService.load();
     await this.gameService.init();
     await this.updateService.onApplicationStartup();

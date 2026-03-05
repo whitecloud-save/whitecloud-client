@@ -1,15 +1,50 @@
-import {createHash} from 'crypto';
-import {app} from '@electron/remote';
-import path from 'path';
-import fs from 'fs/promises';
-import oFS from 'fs';
 import {Observable} from 'rxjs';
+import {PathUtil} from './path-util';
 import {AbstractControl, ValidationErrors} from '@angular/forms';
+import sha1 from 'crypto-js/sha1';
+import sha256 from 'crypto-js/sha256';
+import {workerAPI} from './api/worker-api-instance';
 
 export enum GamePathMark {
   GameRoot = '$GAME_ROOT',
   AppPath = '$APP_PATH',
   UserData = '$USER_DATA',
+}
+
+export interface ISystemPathSetting {
+  appData: string,
+  userData: string,
+  documents: string,
+  cwd: string;
+}
+
+export class App {
+  static init(systemPath: ISystemPathSetting, hostname: string) {
+    this.systemPath_ = systemPath;
+    this.hostname_ = hostname;
+  }
+
+  static getPath(p: 'appData' | 'userData' | 'documents') {
+    switch(p) {
+      case 'appData':
+        return this.systemPath_.appData;
+      case 'userData':
+        return this.systemPath_.userData;
+      case 'documents':
+        return this.systemPath_.documents;
+    }
+  }
+
+  static cwd() {
+    return this.systemPath_.cwd;
+  }
+
+  static hostname() {
+    return this.hostname_;
+  }
+
+  private static systemPath_: ISystemPathSetting;
+  private static hostname_: string;
 }
 
 export class GameUtil {
@@ -21,19 +56,19 @@ export class GameUtil {
       return dirPath.replace(rootPath, GamePathMark.GameRoot);
     }
 
-    if (dirPath.indexOf(app.getPath('appData')) === 0) {
-      return dirPath.replace(app.getPath('appData'), GamePathMark.AppPath);
+    if (dirPath.indexOf(App.getPath('appData')) === 0) {
+      return dirPath.replace(App.getPath('appData'), GamePathMark.AppPath);
     }
 
-    if (dirPath.indexOf(app.getPath('userData')) === 0) {
-      return dirPath.replace(app.getPath('userData'), GamePathMark.UserData);
+    if (dirPath.indexOf(App.getPath('userData')) === 0) {
+      return dirPath.replace(App.getPath('userData'), GamePathMark.UserData);
     }
 
     return dirPath;
   }
 
   static decodePath(dirPath: string, rootPath: string) {
-    if (path.isAbsolute(dirPath))
+    if (PathUtil.isAbsolute(dirPath))
       return dirPath;
 
     if (dirPath.indexOf(GamePathMark.GameRoot) === 0) {
@@ -41,11 +76,11 @@ export class GameUtil {
     }
 
     if (dirPath.indexOf(GamePathMark.AppPath) === 0) {
-      return dirPath.replace(GamePathMark.AppPath, app.getPath('appData'));
+      return dirPath.replace(GamePathMark.AppPath, App.getPath('appData'));
     }
 
     if (dirPath.indexOf(GamePathMark.UserData) === 0) {
-      return dirPath.replace(GamePathMark.UserData, app.getPath('userData'));
+      return dirPath.replace(GamePathMark.UserData, App.getPath('userData'));
     }
     return dirPath;
   }
@@ -142,64 +177,23 @@ class Utility {
   }
 
   static stringHash(str: string) {
-    const hash = createHash('sha1');
-    hash.update(str);
-    return hash.digest('hex').slice(0, 10);
+    return sha1(str).toString().slice(0, 10);
   }
 
   static passwordHash(password: string) {
-    const hash = createHash('sha256');
-    hash.update(password);
-    return hash.digest('hex');
-  }
-
-  static async readdir(filePath: string, prefix = '') {
-    const result: string[] = [];
-    const files = await fs.readdir(filePath);
-    for (const file of files) {
-      const stat = await fs.stat(path.join(filePath, file));
-      if (stat.isDirectory()) {
-        const folderResult = await this.readdir(path.posix.join(filePath, file), path.posix.join(prefix, file));
-        for (const r of folderResult) {
-          result.push(r);
-        }
-      } else {
-        result.push(path.posix.join(prefix, file));
-      }
-    }
-
-    return result;
+    return sha256(password).toString();
   }
 
   static async calculateDirectoryHash(dirPath: string): Promise<string> {
-    const files = await this.readdir(dirPath);
-    files.sort();
-    const hash = createHash('sha1');
-    for (const file of files) {
-      const filePath = path.join(dirPath, file);
-      const content = await fs.readFile(filePath);
-      hash.update(file);
-      hash.update(content);
-    }
-    return hash.digest('hex').slice(0, 10);
+    return workerAPI.crypto.calculateDirectoryHash(dirPath);
   }
 
   static async calculateDirectorySize(dirPath: string): Promise<number> {
-    const files = await this.readdir(dirPath);
-    let totalSize = 0;
-    for (const file of files) {
-      const filePath = path.join(dirPath, file);
-      const stat = await fs.stat(filePath);
-      totalSize += stat.size;
-    }
-    return totalSize;
+    return workerAPI.crypto.calculateDirectorySize(dirPath);
   }
 
   static async calculateFileHash(filePath: string): Promise<string> {
-    const content = await fs.readFile(filePath);
-    const hash = createHash('sha1');
-    hash.update(content);
-    return hash.digest('hex').slice(0, 10);
+    return workerAPI.crypto.calculateFileHash(filePath);
   }
 }
 
@@ -264,15 +258,15 @@ class NodeTime {
 }
 
 class GameValidators {
-  static folder(control: AbstractControl) : ValidationErrors | null {
+  static async folder(control: AbstractControl) {
     const value = control.value;
     if (!value) {
       return null;
     }
 
     try {
-      const stat = oFS.statSync(value);
-      if (stat.isDirectory())
+      const stat = await workerAPI.fs.stat(value); // oFS.statSync(value);
+      if (stat.isDirectory)
         return null;
       return {
         folder: true,
@@ -284,15 +278,15 @@ class GameValidators {
     }
   }
 
-  static file(control: AbstractControl) : ValidationErrors | null {
+  static async file(control: AbstractControl) {
     const value = control.value;
     if (!value) {
       return null;
     }
 
     try {
-      const stat = oFS.statSync(value);
-      if (stat.isFile())
+      const stat = await workerAPI.fs.stat(value);
+      if (stat.isFile)
         return null;
       return {
         folder: true,

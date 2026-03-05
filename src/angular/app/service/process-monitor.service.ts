@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Subject, interval, map} from 'rxjs';
+import {BehaviorSubject, Subject, interval, map, switchMap} from 'rxjs';
 import {Utility} from '../library/utility';
-import {listProcesses} from '@whitecloud-save/binding-addon';
+import {workerAPI} from '../library/api/worker-api-instance';
 
 export enum ProcessEventType {
   Start = 'start',
@@ -22,10 +22,10 @@ export class ProcessMonitorService {
   subjectMap = new Map<string, Subject<IProcessEvent>>();
 
   constructor() {
-    interval(1000)
+    interval(3000)
       .pipe(
-        map(() => {
-          return listProcesses();
+        switchMap(async () => {
+          return workerAPI.process.listProcesses();
         }),
       ).subscribe((processes) => {
         const diff = Utility.arrayDiff(this.runningProcesses.getValue(), processes);

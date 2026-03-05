@@ -28,13 +28,7 @@ module.exports = (config, options) => {
 
   const ignoreLibrary = [
     'electron',
-    'electron/main',
-    'fs/promise',
-    'fs',
-    'path',
-    'crypto',
-    'child_process',
-    ...lib,
+    // ...lib,
   ];
   config.externals = [
     ({_, request}, callback) => {
@@ -44,6 +38,13 @@ module.exports = (config, options) => {
       return callback();
     },
   ];
+
+  config.resolve = config.resolve || {};
+  config.resolve.fallback = {
+    ...config.resolve.fallback,
+    timers: false,
+    stream: false,
+  };
 
   config.plugins = [
     ...config.plugins,

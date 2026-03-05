@@ -1,11 +1,8 @@
 import {Injectable} from '@angular/core';
 import {Game} from '../entity/game';
-import {LocalGameDB} from '../database/game';
-import {GameHistoryDB} from '../database/game-history';
 import {GameUtil, UnixTime} from '../library/utility';
 import {BehaviorSubject} from 'rxjs';
 import {ProcessMonitorService} from './process-monitor.service';
-import {AppDataSource} from '../library/database';
 import {v4} from 'uuid';
 import {SettingService} from './setting.service';
 import {UserService} from './user.service';
@@ -18,6 +15,9 @@ import {Save} from '../entity/save';
 import {GameActivityService} from './game-activity.service';
 import {ErrorHandlingUtil} from './error-handling-util';
 import {SaveTransferService} from './save-transfer.service';
+import {workerAPI} from '../library/api/worker-api-instance';
+import {GameHistoryDB} from '../../../shared/database/game-history';
+import {LocalGameDB} from '../../../shared/database/game';
 
 export interface IImportGameParams {
   name: string;
@@ -34,7 +34,6 @@ export class GameService {
 
   games: BehaviorSubject<Game[]> = new BehaviorSubject([] as Game[]);
   remoteGames: BehaviorSubject<RemoteGame[]> = new BehaviorSubject([] as RemoteGame[]);
-  private gameRepo =  AppDataSource.getRepository(LocalGameDB);
 
   constructor(
     private processMonitorService: ProcessMonitorService,
@@ -63,12 +62,10 @@ export class GameService {
     });
 
     this.serverService.notify<ClientNotifyHandler>().notifyGameSaveUpdate().subscribe((data) => {
-      console.log('notifyGameSaveUpdate', data);
       const game = this.getGame(data.gameId);
       if (!game)
         return;
       const save = game.getSave(data.saveId);
-      console.log(save);
       if (!save) {
         const remoteSave = new RemoteSave(game, data);
         game.addSave(remoteSave);
@@ -91,13 +88,10 @@ export class GameService {
         if (!game)
           continue;
 
-        const historyRepo = AppDataSource.getRepository(GameHistoryDB);
-        const existing = await historyRepo.findOne({
-          where: { id: history.id }
-        });
+        const existing = await workerAPI.db.findOneGameHistory(history.id);
 
         if (!existing) {
-          const historyDB = historyRepo.create({
+          const historyDB = new GameHistoryDB({
             id: history.id,
             gameId: history.gameId,
             host: history.host,
@@ -106,15 +100,15 @@ export class GameService {
             synced: 1,
             createTime: history.createTime,
           });
-          await AppDataSource.manager.save(historyDB);
+          await workerAPI.db.saveGameHistory(historyDB);
           game.addHistory(historyDB);
         } else {
-          existing['startTime'] = history.startTime;
-          existing['endTime'] = history.endTime;
-          existing['host'] = history.host;
-          existing['createTime'] = history.createTime;
-          existing['synced'] = 1;
-          await AppDataSource.manager.save(existing);
+          existing.startTime = history.startTime;
+          existing.endTime = history.endTime;
+          existing.host = history.host;
+          existing.createTime = history.createTime;
+          existing.synced = 1;
+          await workerAPI.db.saveGameHistory(existing);
         }
 
         await game.updateLastGameHistorySyncTime(history.createTime);
@@ -197,8 +191,8 @@ export class GameService {
     const games = this.games.getValue();
     const order = games.length ? games[0].order + 1 : 1;
 
-    const savePath = GameUtil.encodePath(params.savePath, params.gamePath);
-    const gameDB = this.gameRepo.create({
+    const savePath = await GameUtil.encodePath(params.savePath, params.gamePath);
+    const gameDB = new LocalGameDB({
       id: remoteGame.id,
       name: remoteGame.name,
       gamePath: params.gamePath,
@@ -207,13 +201,24 @@ export class GameService {
       createTime: UnixTime.now(),
       coverImgUrl: remoteGame.coverImgUrl as string,
       order,
-    });
-    const game = new Game(gameDB, this.processMonitorService, this.settingService, this, this.serverService, this.userService, this.ossService, this.gameActivityService, this.errorHandlingUtil, this.saveTransferService);
+    })
+    const game = new Game(
+      gameDB,
+      this.processMonitorService,
+      this.settingService,
+      this,
+      this.serverService,
+      this.userService,
+      this.ossService,
+      this.gameActivityService,
+      this.errorHandlingUtil,
+      this.saveTransferService
+    );
     game.cloudSaveNum = remoteGame.cloudSaveNum;
     await game.save();
     this.addGame(game);
     await game.zipSave();
-    await (game as any).updateCurrentSave();
+    await game.updateCurrentSave();
 
     this.removeRemoteGame(remoteGame);
   }
@@ -258,7 +263,7 @@ export class GameService {
     const games = this.games.getValue();
     const order = games.length ? games[0].order + 1 : 1;
 
-    const gameDB = this.gameRepo.create({
+    const gameDB = new LocalGameDB({
       id: v4(),
       name: params.name,
       gamePath: params.gamePath,
@@ -331,16 +336,12 @@ export class GameService {
   }
 
   async init() {
-    const gameDBs = await this.gameRepo.find({
-      order: {
-        order: 'desc',
-      },
-    });
+    const gameDBs = await workerAPI.db.findGames();
     let index = gameDBs.length;
     for (const db of gameDBs) {
       if (db.order !== index) {
         db.order = index;
-        await AppDataSource.manager.save(db);
+        await workerAPI.db.saveGame(db);
       }
       index--;
       this.addDBGame(db);

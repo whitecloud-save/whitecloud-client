@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Output} from '@angular/core';
 import {IconService} from '../../../../service/icon.service';
-import {dialog} from '@electron/remote';
+import {mainAPI} from '../../../../library/api/main-api-instance';
 
 @Component({
   selector: 'app-game-folder-selector',
@@ -17,7 +17,7 @@ export class GameFolderSelectorComponent {
   ) {}
 
   async openFolderSelectorDialog() {
-    const res = await dialog.showOpenDialog({
+    const res = await mainAPI.dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '请选择游戏文件夹',
     });

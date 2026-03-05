@@ -1,37 +1,29 @@
 import {BehaviorSubject, Subscription} from 'rxjs';
-import {LocalGameDB} from '../database/game';
 import {CacheImage} from '../library/cache-image';
-import {AppDataSource} from '../library/database';
-import {GameUtil, UnixTime, Utility} from '../library/utility';
+import {App, GameUtil, UnixTime, Utility} from '../library/utility';
 import {BaseError} from '../library/error/BaseError';
 import {ErrorCode} from '../library/error/ErrorCode';
 import {ProcessEventType, ProcessMonitorService} from '../service/process-monitor.service';
-import {shell} from '@electron/remote';
-import JSZip from 'jszip';
 import {v4} from 'uuid';
-import fs from 'fs/promises';
-import oFS from 'fs';
-import path from 'path';
-import {mkdirp} from 'mkdirp';
-import {spawn} from 'child_process';
+import {PathUtil} from '../library/path-util';
 import {Save} from './save';
-import {SaveDB} from '../database/save';
-import {hostname} from 'os';
-import {GameHistoryDB} from '../database/game-history';
 import {SettingService} from '../service/setting.service';
-import {ipcRenderer} from 'electron';
 import {GameService} from '../service/game.service';
-import {UserGame} from '../service/server/api';
+import {GameHistory, UserGame} from '../service/server/api';
 import {ServerService} from '../service/server/server.service';
 import {UserService} from '../service/user.service';
 import {OssService} from '../service/oss.service';
 import {RemoteSave} from './remote-save';
-import fileIcon from 'extract-file-icon';
 import {GameActivityService} from '../service/game-activity.service';
 import {ErrorHandlingUtil} from '../service/error-handling-util';
-import {GameActivityDB, GameActivityType} from '../database/game-activity';
-import {GameGuideDB} from '../database/game-guide';
 import {SaveTransferService} from '../service/save-transfer.service';
+import {workerAPI} from '../library/api/worker-api-instance';
+import {LocalGameDB} from '../../../shared/database/game';
+import {GameHistoryDB} from '../../../shared/database/game-history';
+import {SaveDB} from '../../../shared/database/save';
+import {GameActivityType} from '../../../shared/database/game-activity';
+import {mainAPI} from '../library/api/main-api-instance';
+import {Base64} from 'js-base64';
 
 export enum GameState {
   Init = 1,
@@ -84,23 +76,18 @@ export class Game {
 
   async loadIcon() {
     if (this.state_.getValue() !== GameState.Error) {
-      const targetPath = path.resolve(process.cwd(), this.backupSavePath, 'icon.png');
-      const data = fileIcon(this.exeFilePath, 32);
-      await fs.writeFile(targetPath, data as NodeJS.ArrayBufferView);
-      this.iconPath_ = targetPath;
+      const target = PathUtil.resolve(this.backupSavePath, 'icon.png');
+      const iconData = await workerAPI.icon.extractFileIcon({
+        exePath: this.exeFilePath,
+        targetPath: target,
+      });
+      this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
     }
   }
 
   async init() {
     this.updateRunningInfo();
-    const saveDBList = await AppDataSource.manager.find(SaveDB, {
-      where: {
-        gameId: this.id,
-      },
-      order: {
-        createTime: 'desc',
-      },
-    });
+    const saveDBList = await workerAPI.db.findSaves(this.id);
 
     for (const saveDB of saveDBList) {
       const save = new Save(saveDB, this);
@@ -109,11 +96,7 @@ export class Game {
 
     this.syncSaveList();
 
-    const historyList = await AppDataSource.manager.find(GameHistoryDB, {
-      where: {
-        gameId: this.id,
-      },
-    });
+    const historyList = await workerAPI.db.findGameHistory(this.id);
     this.history_ = historyList;
     await this.updateCurrentSave();
     await this.checkState();
@@ -194,18 +177,17 @@ export class Game {
 
   async removeFromLocal() {
     this.processOb_?.unsubscribe();
-    await fs.rm(this.backupSavePath, {recursive: true}).catch((err) => {console.log(err)});
-    await AppDataSource.manager.delete(SaveDB, {
-      gameId: this.id,
+    await workerAPI.fs.deleteDir({
+      path: this.backupSavePath,
+      options: {
+        recursive: true
+      }
     });
-    await AppDataSource.manager.delete(GameActivityDB, {
-      gameId: this.id,
-    });
-    await AppDataSource.manager.delete(GameGuideDB, {
-      gameId: this.id,
-    });
-    await AppDataSource.manager.remove(this.history_);
-    await AppDataSource.manager.remove(this.db_);
+    await workerAPI.db.deleteSavesByGame(this.id);
+    await workerAPI.db.deleteGameActivityByGame(this.id);
+    await workerAPI.db.deleteGameGuidByGame(this.id);
+    await workerAPI.db.deleteGameHistoryByGame(this.id);
+    await workerAPI.db.deleteGame(this.id);
   }
 
   async onGameProcessStart() {
@@ -215,34 +197,30 @@ export class Game {
   async onGameProcessExit() {
     await this.zipSave();
     const endTime = UnixTime.now();
-    const historyRepo = AppDataSource.getRepository(GameHistoryDB);
-    const historyDB = historyRepo.create({
+    const historyDB = new GameHistoryDB({
       id: v4(),
       gameId: this.id,
-      host: hostname(),
+      host: App.hostname(),
       startTime: this.gameStartTime_,
       endTime: endTime,
       synced: 0,
       createTime: endTime,
-    });
-    await AppDataSource.manager.save(historyDB);
+    })
+
+    await workerAPI.db.saveGameHistory(historyDB);
+
     this.history_ = [...this.history_, historyDB];
     this.activityUpdate$.next(this.id);
     this.gameStartTime_ = 0;
 
-    this.syncGameHistoryToServer([{
-      id: historyDB.id,
-      gameId: historyDB.gameId,
-      host: historyDB.host,
-      startTime: historyDB.startTime,
-      endTime: historyDB.endTime,
-    }]).catch((error) => {
+    this.syncGameHistoryToServer([historyDB]).catch((error) => {
       console.error('同步游戏历史记录失败:', error);
       // this.errorHandlingUtil.handleAutoError(error, `游戏历史记录同步失败`);
     });
 
     if (this.db_.autoOpenGuide) {
-      await ipcRenderer.invoke('closeGameGuideWindow', this.guideWindowId_);
+      // TODO
+      // await ipcRenderer.invoke('closeGameGuideWindow', this.guideWindowId_);
     }
   }
 
@@ -255,9 +233,11 @@ export class Game {
       }, 1000);
 
       try {
-        const content = await fs.readFile(save.filename);
-        const file = new File([content as any], v4());
-        return await this.ossService_.uploadGameSave(save, file);
+        // await workerAPI.oss
+        // const content = await fs.readFile(save.filename);
+        // const file = new File([content as any], v4());
+        // return await this.ossService_.uploadGameSave(save);
+        // TODO
       } finally {
         clearTimeout(showNotification);
         this.saveTransferService_.endTransfer();
@@ -267,11 +247,12 @@ export class Game {
   }
 
   async openGameGuide() {
-    const id = await ipcRenderer.invoke('createGameGuideWindow', {
-      uuid: this.id,
-      title: `${this.name} 攻略`,
-    });
-    this.guideWindowId_ = id;
+    // TODO
+    // const id = await ipcRenderer.invoke('createGameGuideWindow', {
+    //   uuid: this.id,
+    //   title: `${this.name} 攻略`,
+    // });
+    // this.guideWindowId_ = id;
   }
 
   getLatestCloudSave(): RemoteSave | Save | null {
@@ -300,13 +281,14 @@ export class Game {
   }
 
   async startGame() {
-    if (this.settingService_.useLE && this.extractSetting.LEProfile) {
-      spawn(this.settingService_.LEExePath, ['-runas', this.extractSetting.LEProfile, this.exeFilePath]);
-    } else {
-      spawn(this.exeFilePath, {
-        cwd: path.dirname(this.exeFilePath),
-      });
-    }
+    // TODO
+    // if (this.settingService_.useLE && this.extractSetting.LEProfile) {
+    //   spawn(this.settingService_.LEExePath, ['-runas', this.extractSetting.LEProfile, this.exeFilePath]);
+    // } else {
+    //   spawn(this.exeFilePath, {
+    //     cwd: path.dirname(this.exeFilePath),
+    //   });
+    // }
 
     if (this.db_.autoOpenGuide) {
       this.openGameGuide();
@@ -314,22 +296,23 @@ export class Game {
   }
 
   async openSavePath() {
-    return shell.openPath(this.savePath);
+    return mainAPI.shell.openPath(this.savePath);
+    // return shell.openPath(this.savePath);
   }
 
   async openGamePath() {
-    return shell.openPath(this.gamePath);
+    return mainAPI.shell.openPath(this.gamePath);
   }
 
-  async createSaveZip() {
-    const zip = new JSZip();
-    const files = await Utility.readdir(this.savePath);
-    for (const file of files) {
-      const content = await fs.readFile(path.join(this.savePath, file));
-      zip.file(file, content as any);
-    }
-    return zip.generateNodeStream();
-  }
+  // async createSaveZip() {
+  //   const zip = new JSZip();
+  //   const files = await workerAPI.fs.readdirRecursive(this.savePath); // Utility.readdir(this.savePath);
+  //   for (const file of files) {
+  //     const content = await fs.readFile(path.join(this.savePath, file));
+  //     zip.file(file, content as any);
+  //   }
+  //   return zip.generateNodeStream();
+  // }
 
   async cleanExpiredLocalSave() {
     if (!this.db_.localSaveNum)
@@ -409,30 +392,37 @@ export class Game {
       }
 
       const directorySize = await Utility.calculateDirectorySize(this.savePath);
-      const zipStream = await this.createSaveZip();
       const id = v4();
-      const saveZipFilePath = path.join(this.backupSavePath, id + '.zip');
-      await mkdirp(path.dirname(saveZipFilePath));
-      const fsStream = oFS.createWriteStream(saveZipFilePath);
-      await new Promise<void>((resolve, reject) => {
-        zipStream.pipe(fsStream).on('finish', resolve).on('error', reject);
+      const saveZipFilePath = PathUtil.join(this.backupSavePath, id + '.zip');
+
+      await workerAPI.fs.mkdir({
+        path: PathUtil.dirname(saveZipFilePath),
+        options: {
+          recursive: true,
+        },
       });
-      const saveStat = await fs.stat(saveZipFilePath);
+
+      const zipRes = await workerAPI.zip.createZipFromDirectory({
+        dirPath: this.savePath,
+        zipPath: saveZipFilePath,
+      });
+
+      // const saveStat = await fs.stat(saveZipFilePath);
       const zipHash = await Utility.calculateFileHash(saveZipFilePath);
-      const saveRepo = AppDataSource.getRepository(SaveDB);
-      const saveDB = saveRepo.create({
+
+      const saveDB = new SaveDB({
         id,
         gameId: this.id,
         createTime: UnixTime.now(),
         updateTime: UnixTime.now(),
         remark: '',
-        hostname: hostname(),
-        size: saveStat.size,
+        hostname: App.hostname(),
+        size: zipRes.zipSize,
         started: false,
         directoryHash,
         directorySize,
         zipHash,
-      });
+      })
       const save = new Save(saveDB, this);
       await save.save(false);
 
@@ -460,32 +450,26 @@ export class Game {
   }
 
   async checkState() {
-    try {
-      await fs.access(this.savePath, fs.constants.F_OK);
-    } catch (err) {
+    if (!await workerAPI.fs.exists(this.savePath)) {
       this.onError(new BaseError(ErrorCode.ERR_GAME_SAVE_PATH_NOT_FOUND));
       return;
     }
 
-    try {
-      await fs.access(this.gamePath, fs.constants.F_OK);
-    } catch (err) {
+    if (!await workerAPI.fs.exists(this.gamePath)) {
       this.onError(new BaseError(ErrorCode.ERR_GAME_PATH_NOT_FOUND));
       return;
     }
 
-    try {
-      await fs.access(this.exeFilePath, fs.constants.F_OK);
-    } catch (err) {
+    if (!await workerAPI.fs.exists(this.exeFilePath)) {
       this.onError(new BaseError(ErrorCode.ERR_GAME_EXE_NOT_FOUND));
       return;
     }
 
-    try {
-      const targetPath = path.resolve(process.cwd(), this.backupSavePath, 'icon.png');
-      await fs.access(targetPath);
-      this.iconPath_ = targetPath;
-    } catch (err) {
+    const iconPath = PathUtil.join(this.backupSavePath, 'icon.png');
+    if (await workerAPI.fs.exists(iconPath)) {
+      const iconData = await workerAPI.fs.readFile(iconPath);
+      this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
+    } else {
       await this.loadIcon();
     }
 
@@ -494,10 +478,10 @@ export class Game {
       return;
     }
 
-    if (await this.checkSaveSizeExceeded()) {
-      this.setState(GameState.SaveSizeExceeded);
-      return;
-    }
+    // if (await this.checkSaveSizeExceeded()) {
+    //   this.setState(GameState.SaveSizeExceeded);
+    //   return;
+    // }
 
     this.setState(GameState.Checked);
   }
@@ -507,7 +491,7 @@ export class Game {
   }
 
   async save(syncToServer = true) {
-    this.db_ = await AppDataSource.manager.save(this.db_);
+    this.db_ = await workerAPI.db.saveGame(this.db_);
     if (syncToServer) {
       this.syncToServer();
     }
@@ -545,7 +529,7 @@ export class Game {
     await this.save(false);
   }
 
-  async syncGameHistoryToServer(histories: Array<{ id: string; gameId: string; host: string; startTime: number; endTime: number }>) {
+  async syncGameHistoryToServer(histories: Array<GameHistoryDB>) {
     if (!this.userService_.isOnline()) {
       return;
     }
@@ -561,83 +545,34 @@ export class Game {
         })),
       });
 
-      const historyRepo = AppDataSource.getRepository(GameHistoryDB);
-      for (const item of result) {
-        const existing = this.history_.find(h => h.id === item.id);
-        if (!existing) {
-          const historyDB = historyRepo.create({
-            id: item.id,
-            gameId: item.gameId,
-            host: item.host,
-            startTime: item.startTime,
-            endTime: item.endTime,
-            synced: 1,
-            createTime: item.createTime,
-          });
-          await AppDataSource.manager.save(historyDB);
-          this.history_ = [...this.history_, historyDB];
-        } else {
-          existing.synced = 1;
-          existing.createTime = item.createTime;
-          await AppDataSource.manager.save(existing);
-        }
-      }
+      await this.loadServerGameHistory(result);
     } catch (error) {
       console.error('同步游戏历史记录到服务器失败:', error);
       throw error;
     }
   }
 
-  async fetchGameHistoryFromServer() {
-    if (!this.userService_.isOnline()) {
-      return;
-    }
+  private async loadServerGameHistory(list: GameHistory[]) {
+    for (const item of list) {
+      const existing = this.history_.find(h => h.id === item.id);
+      if (!existing) {
+        const historyDB = new GameHistoryDB({
+          id: item.id,
+          gameId: item.gameId,
+          host: item.host,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          synced: 1,
+          createTime: item.createTime,
+        });
+        await workerAPI.db.saveGameHistory(historyDB);
+        this.history_ = [...this.history_, historyDB];
+      } else {
+        existing.synced = 1;
+        existing.createTime = item.createTime;
 
-    try {
-      const lastSyncTime = this.db_.lastGameHistorySyncTime || 0;
-      const result = await this.serverService_.business.fetchGameHistory({
-        gameId: this.id,
-        lastSyncTime,
-      });
-
-      const historyRepo = AppDataSource.getRepository(GameHistoryDB);
-      let maxCreateTime = 0;
-
-      for (const item of result) {
-        const existing = this.history_.find(h => h.id === item.id);
-        if (!existing) {
-          const historyDB = historyRepo.create({
-            id: item.id,
-            gameId: item.gameId,
-            host: item.host,
-            startTime: item.startTime,
-            endTime: item.endTime,
-            synced: 1,
-            createTime: item.createTime,
-          });
-          await AppDataSource.manager.save(historyDB);
-          this.history_ = [...this.history_, historyDB];
-        } else {
-          existing.startTime = item.startTime;
-          existing.endTime = item.endTime;
-          existing.host = item.host;
-          existing.createTime = item.createTime;
-          existing.synced = 1;
-          await AppDataSource.manager.save(existing);
-        }
-
-        if (item.createTime > maxCreateTime) {
-          maxCreateTime = item.createTime;
-        }
+        await workerAPI.db.saveGameHistory(existing);
       }
-
-      if (maxCreateTime > 0) {
-        this.db_.lastGameHistorySyncTime = maxCreateTime;
-        await this.save(false);
-      }
-    } catch (error) {
-      console.error('从服务器获取游戏历史记录失败:', error);
-      throw error;
     }
   }
 
@@ -652,13 +587,7 @@ export class Game {
     }
 
     try {
-      await this.syncGameHistoryToServer(unsyncedHistories.map(h => ({
-        id: h.id,
-        gameId: h.gameId,
-        host: h.host,
-        startTime: h.startTime,
-        endTime: h.endTime,
-      })));
+      await this.syncGameHistoryToServer(unsyncedHistories);
     } catch (error) {
       console.error('同步未同步的游戏历史记录失败:', error);
       throw error;
@@ -693,7 +622,7 @@ export class Game {
   }
 
   get backupSavePath() {
-    return path.join('.', 'data', 'saves', this.id);
+    return PathUtil.join('.', 'data', 'saves', this.id);
   }
 
   get gamePath() {
@@ -715,7 +644,7 @@ export class Game {
   }
 
   get exeFilePath() {
-    return path.join(this.db_.gamePath, this.db_.exeFile);
+    return PathUtil.join(this.db_.gamePath, this.db_.exeFile);
   }
 
   set exeFile(value: string) {
@@ -873,7 +802,7 @@ export class Game {
 
   addHistory(history: GameHistoryDB) {
     this.history_ = [...this.history_, history];
-    this.activityUpdate$.next(this.id);
+    this.notifyActivityUpdate();
   }
 
   async updateLastGameHistorySyncTime(time: number) {
@@ -889,7 +818,7 @@ export class Game {
     return this.currentSave_;
   }
 
-  private async updateCurrentSave(): Promise<void> {
+  async updateCurrentSave(): Promise<void> {
     try {
       const currentDirHash = await Utility.calculateDirectoryHash(this.savePath);
       const currentDirSize = await Utility.calculateDirectorySize(this.savePath);
@@ -904,8 +833,7 @@ export class Game {
     }
   }
 
-  async notifyRollbackComplete(save: Save): Promise<void> {
-    await this.updateCurrentSave();
+  notifyActivityUpdate() {
     this.activityUpdate$.next(this.id);
   }
 

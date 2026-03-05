@@ -1,5 +1,3 @@
-import {Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn} from 'typeorm';
-
 export enum GameActivityType {
   SAVE_BACKUP_LOCAL = 'SAVE_BACKUP_LOCAL',
   SAVE_BACKUP_CLOUD = 'SAVE_BACKUP_CLOUD',
@@ -15,23 +13,18 @@ export interface SaveUploadFailedData extends GameActivityData {
   reason: string;
 }
 
-@Entity()
 export class GameActivityDB {
-  @PrimaryGeneratedColumn()
+  constructor(data?: Partial<GameActivityDB>) {
+    if (!data)
+      return;
+
+    Object.assign(this, data);
+  }
+
   id!: number;
-
-  @Column('uuid')
   gameId!: string;
-
-  @Column()
   type!: GameActivityType;
-
-  @Column('text')
   data!: string;
-
-  @CreateDateColumn()
   createdAt!: Date;
-
-  @UpdateDateColumn()
   updatedAt!: Date;
 }
