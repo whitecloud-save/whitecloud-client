@@ -89,7 +89,6 @@ export class WebsocketServerService extends ServerService {
     return new Proxy({} as any, {
       get: (target, prop: string, receiver) => {
         return async (body: unknown) => {
-          console.log(prop);
           const client = await this.connect();
           const waiter = this.waiter_.wait(1000 * 10);
           const packet: IRawReqPacket = {

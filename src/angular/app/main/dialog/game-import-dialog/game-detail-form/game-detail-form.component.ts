@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {IconService} from '../../../../service/icon.service';
 import {GameImportService} from '../game-import.service';
 import {App} from '../../../../library/utility';
-import {mainAPI} from '../../../../library/api/main-api-instance';
+import {mainAPI} from '../../../../library/api/main-api';
 
 @Component({
   selector: 'app-game-detail-form',

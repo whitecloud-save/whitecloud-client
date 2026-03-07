@@ -13,7 +13,6 @@ export class RemoteSave {
 
   async download() {
     const res = await this.game_.serverService.business.signGameSaveUrl({url: this.data_.ossPath});
-    console.log(res);
 
     // TODO
     // await axios.get(res.url, {responseType: 'arraybuffer'})
@@ -29,11 +28,11 @@ export class RemoteSave {
       updateTime: this.data_.updateTime,
       remark: this.data_.remark,
       hostname: this.data_.hostname,
-      size: this.data_.size,
+      size: parseInt(this.data_.size, 10),
       started: this.data_.stared,
       directoryHash: this.data_.directoryHash,
       zipHash: this.data_.zipHash,
-      directorySize: this.data_.directorySize,
+      directorySize: this.data_.directorySize ? parseInt(this.data_.directorySize) : null,
     });
     const save = new Save(saveDB, this.game);
     save.ossPath = this.ossPath;
@@ -66,7 +65,7 @@ export class RemoteSave {
   }
 
   get size() {
-    return this.data_.size;
+    return parseInt(this.data_.size);
   }
 
 

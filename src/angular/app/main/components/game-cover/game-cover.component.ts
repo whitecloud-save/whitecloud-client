@@ -10,7 +10,7 @@ import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 import {UserService} from '../../../service/user.service';
 import {RemoteSave} from '../../../entity/remote-save';
 import {Save} from '../../../entity/save';
-import {mainAPI} from '../../../library/api/main-api-instance';
+import {mainAPI} from '../../../library/api/main-api';
 
 @Component({
   selector: 'app-game-cover',

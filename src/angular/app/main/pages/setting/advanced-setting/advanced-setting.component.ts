@@ -3,7 +3,7 @@ import {FormControl, FormGroup} from '@angular/forms';
 import {SettingService} from '../../../../service/setting.service';
 import {IconService} from '../../../../service/icon.service';
 import {GameValidators} from '../../../../library/utility';
-import {mainAPI} from '../../../../library/api/main-api-instance';
+import {mainAPI} from '../../../../library/api/main-api';
 
 @Component({
   selector: 'app-advanced-setting',

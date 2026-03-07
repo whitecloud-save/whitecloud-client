@@ -7,7 +7,7 @@ import {PathUtil} from '../../../library/path-util';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {GameService} from '../../../service/game.service';
 import {ErrorHandlingUtil} from '../../../service/error-handling-util';
-import {mainAPI} from '../../../library/api/main-api-instance';
+import {mainAPI} from '../../../library/api/main-api';
 
 @Component({
   selector: 'app-sync-remote-game-dialog',

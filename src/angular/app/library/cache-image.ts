@@ -2,7 +2,7 @@ import {Utility} from './utility';
 import {Observable} from 'rxjs';
 import axios from 'axios';
 import {PathUtil} from './path-util';
-import {workerAPI} from './api/worker-api-instance';
+import {workerAPI} from './api/worker-api';
 import {ServerService} from '../service/server/server.service';
 import {Base64} from 'js-base64';
 

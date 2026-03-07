@@ -3,7 +3,7 @@ import {BaseError} from '../../../library/error/BaseError';
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {GameService, IImportGameParams} from '../../../service/game.service';
 import {PathUtil} from '../../../library/path-util';
-import {workerAPI} from '../../../library/api/worker-api-instance';
+import {workerAPI} from '../../../library/api/worker-api';
 
 export enum GameImportStep {
   SelectGameDir = 1,

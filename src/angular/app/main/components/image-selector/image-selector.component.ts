@@ -2,7 +2,7 @@ import {Component, Input, OnInit, forwardRef} from '@angular/core';
 import axios from 'axios';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {IconService} from '../../../service/icon.service';
-import {mainAPI} from '../../../library/api/main-api-instance';
+import {mainAPI} from '../../../library/api/main-api';
 
 @Component({
   selector: 'app-image-selector',

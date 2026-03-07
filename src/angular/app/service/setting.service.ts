@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {PathUtil} from '../library/path-util';
 import xml2js from 'xml2js';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 
 @Injectable({
   providedIn: 'root',

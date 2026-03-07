@@ -8,7 +8,7 @@ import {BaseError} from '../library/error/BaseError';
 import {ErrorCode} from '../library/error/ErrorCode';
 import {Save} from '../entity/save';
 import {ConnectionStateService} from './connection-state.service';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 
 interface IUploadFormData {
   name: string;
@@ -44,29 +44,50 @@ export class OssService {
     return formData;
   }
 
-  async uploadGameSave(save: Save, file: File) {
+  async uploadGameSave(save: Save) {
     this.connectionStateService.startRequest();
     try {
-      const data = await this.server.business.generateGameSaveSignature({
+      // const data = await this.server.business.generateGameSaveSTS({
+      //   gameId: save.game.id,
+      //   saveId: save.id,
+      //   remark: save.remark,
+      //   size: save.size.toString(),
+      //   stared: save.stared,
+      //   hostname: save.hostname,
+      //   createTime: save.createTime,
+      //   directoryHash: save.directoryHash,
+      //   zipHash: save.zipHash,
+      //   directorySize: save.directorySize?.toString(),
+      // });
+
+
+      const data = await this.server.business.generateGameSaveSignatureV4({
         gameId: save.game.id,
         saveId: save.id,
         remark: save.remark,
-        size: save.size,
+        size: save.size.toString(),
         stared: save.stared,
         hostname: save.hostname,
         createTime: save.createTime,
         directoryHash: save.directoryHash,
         zipHash: save.zipHash,
-        directorySize: save.directorySize,
+        directorySize: save.directorySize?.toString(),
       });
-      const name = `${save.id}.zip`;
-      const formData = this.buildFormData({
-        name,
+
+      await workerAPI.oss.uploadSave({
         ...data,
-        file,
+        saveFilePath: save.filename,
       });
-      await fetch(data.host, {method: 'POST', body: formData});
-      return data.dir + name;
+
+      return data.filename;
+
+      // const formData = this.buildFormData({
+      //   name,
+      //   ...data,
+      //   file,
+      // });
+      // await fetch(data.host, {method: 'POST', body: formData});
+      // return data.dir + name;
     } finally {
       this.connectionStateService.endRequest();
     }
@@ -109,7 +130,7 @@ export class OssService {
     return data.dir + name;
   }
 
-  async readUrl(url: string): Promise<Buffer> {
+  async readUrl(url: string): Promise<Uint8Array> {
     const urlPath = new URL(url);
     switch(urlPath.protocol) {
       case 'file:': {
@@ -117,12 +138,12 @@ export class OssService {
       }
       case 'oss:': {
         const res = await axios.get(`${APP_CONFIG.ossEndpoint}${urlPath.pathname}`, {responseType: 'arraybuffer'});
-        return res.data as Buffer;
+        return res.data as Uint8Array;
       }
       case 'http:':
       case 'https:': {
         const res = await axios.get(url, {responseType: 'arraybuffer'});
-        return res.data as Buffer;
+        return res.data as Uint8Array;
       }
       default:
         throw new Error('protocol not supported');

@@ -1,6 +1,6 @@
 import {enableProdMode} from '@angular/core';
 import {APP_CONFIG} from './environments/environment';
-import {mainAPI} from './app/library/api/main-api-instance';
+import {mainAPI} from './app/library/api/main-api';
 import {AppModule} from './app/app.module';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 import {GameGuideModule} from './app/game-guide.module';

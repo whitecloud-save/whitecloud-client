@@ -5,8 +5,8 @@ import {GamePageService} from '../../game-page.service';
 import {Game} from '../../../../../entity/game';
 import {PathUtil} from '../../../../../library/path-util';
 import {GameUtil, GameValidators} from '../../../../../library/utility';
-import {workerAPI} from '../../../../../library/api/worker-api-instance';
-import {mainAPI} from '../../../../../library/api/main-api-instance';
+import {workerAPI} from '../../../../../library/api/worker-api';
+import {mainAPI} from '../../../../../library/api/main-api';
 
 @Component({
   selector: 'app-game-basic-setting',

@@ -3,8 +3,8 @@ import {UserService} from '../../../../service/user.service';
 import {DialogService} from '../../../../service/dialog.service';
 import {v4} from 'uuid';
 import {OssService} from '../../../../service/oss.service';
-import {workerAPI} from '../../../../library/api/worker-api-instance';
-import {mainAPI} from '../../../../library/api/main-api-instance';
+import {workerAPI} from '../../../../library/api/worker-api';
+import {mainAPI} from '../../../../library/api/main-api';
 
 @Component({
   selector: 'app-user-setting',
@@ -13,10 +13,10 @@ import {mainAPI} from '../../../../library/api/main-api-instance';
 })
 export class UserSettingComponent {
   uploadingAvatar = false;
-  storageUsed = 0;
-  storageMax = 0;
+  storageUsed = 0n;
+  storageMax = 0n;
   storagePercentage = 0;
-  storageRemaining = 0;
+  storageRemaining = 0n;
 
   constructor(
     public userService: UserService,
@@ -44,7 +44,7 @@ export class UserSettingComponent {
   fetchStorageInfo() {
     this.storageUsed = this.userService.getStorageUsed();
     this.storageMax = this.userService.getStorageMax();
-    this.storagePercentage = this.storageMax > 0 ? parseFloat(((this.storageUsed / this.storageMax) * 100).toFixed(2)) : 0;
+    this.storagePercentage = parseInt((this.storageUsed * 10000n / this.storageMax).toString()) / 10000;
     this.storageRemaining = this.storageMax - this.storageUsed;
   }
 

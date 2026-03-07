@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Output} from '@angular/core';
 import {IconService} from '../../../../service/icon.service';
-import {mainAPI} from '../../../../library/api/main-api-instance';
+import {mainAPI} from '../../../../library/api/main-api';
 
 @Component({
   selector: 'app-game-folder-selector',
@@ -31,9 +31,10 @@ export class GameFolderSelectorComponent {
   async onFileDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    if (event.dataTransfer?.files.length) {
-      const file = event.dataTransfer.files[0];
-      this.open.emit(file.path);
-    }
+    // TODO
+    // if (event.dataTransfer?.files.length) {
+    //   const file = event.dataTransfer.files[0];
+    //   this.open.emit(file.path);
+    // }
   }
 }

@@ -15,7 +15,7 @@ import {Save} from '../entity/save';
 import {GameActivityService} from './game-activity.service';
 import {ErrorHandlingUtil} from './error-handling-util';
 import {SaveTransferService} from './save-transfer.service';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 import {LocalGameDB} from '../../../shared/database/game';
 

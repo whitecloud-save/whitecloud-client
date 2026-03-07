@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject, interval, map, switchMap} from 'rxjs';
 import {Utility} from '../library/utility';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 
 export enum ProcessEventType {
   Start = 'start',

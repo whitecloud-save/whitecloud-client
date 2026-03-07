@@ -5,7 +5,7 @@ import {UpdateService, UpdateState} from '../../../../service/update.service';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {DialogService} from '../../../../service/dialog.service';
-import {mainAPI} from '../../../../library/api/main-api-instance';
+import {mainAPI} from '../../../../library/api/main-api';
 
 @Component({
   selector: 'app-basic-setting',

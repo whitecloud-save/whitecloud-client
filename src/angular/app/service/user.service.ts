@@ -11,17 +11,22 @@ import {ErrorHandlingUtil} from './error-handling-util';
 import { BaseError } from '../library/error/BaseError';
 
 export interface IStorageInfo {
-  usedSpace: number;
-  totalSpace: number;
+  usedSpace: bigint;
+  totalSpace: bigint;
+}
+
+export interface IAccountVIP extends Omit<AccountVIP, 'space'> {
+  space: bigint;
 }
 
 export interface IUserInfo {
   id: number;
   nickname?: string;
   avatar?: string;
-  vipInfo?: AccountVIP;
+  vipInfo?: IAccountVIP;
   storageInfo?: IStorageInfo;
 }
+
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +34,7 @@ export interface IUserInfo {
 export class UserService {
   public logged: BehaviorSubject<boolean> = new BehaviorSubject(false);
   public userInfo: IUserInfo | null = null;
-  public storageUpdate: BehaviorSubject<INotifyStorageUpdate | null> = new BehaviorSubject<INotifyStorageUpdate | null>(null);
+  public storageUpdate: BehaviorSubject<IStorageInfo | null> = new BehaviorSubject<IStorageInfo | null>(null);
 
   constructor(
     private server: ServerService,
@@ -59,9 +64,11 @@ export class UserService {
     this.server.notify<ClientNotifyHandler>().notifyUserInfoUpdate().subscribe((notify) => {
       if (!this.userInfo)
         return;
+
       if (notify.nickname) {
         this.userInfo.nickname = notify.nickname;
       }
+
       if (notify.avatar) {
         this.userInfo.avatar = notify.avatar;
       }
@@ -70,11 +77,12 @@ export class UserService {
     this.server.notify<ClientNotifyHandler>().notifyStorageUpdate().subscribe((notify) => {
       if (!this.userInfo)
         return;
+
       if (this.userInfo.storageInfo) {
-        this.userInfo.storageInfo.usedSpace = notify.usedSpace;
-        this.userInfo.storageInfo.totalSpace = notify.totalSpace;
+        this.userInfo.storageInfo.usedSpace = BigInt(notify.usedSpace);
+        this.userInfo.storageInfo.totalSpace = BigInt(notify.totalSpace);
       }
-      this.storageUpdate.next(notify);
+      this.storageUpdate.next(this.userInfo.storageInfo || null);
     });
 
     this.server.notify<ClientNotifyHandler>().notifyVipUpdate().subscribe((notify: INotifyVipUpdate) => {
@@ -84,7 +92,7 @@ export class UserService {
         this.userInfo.vipInfo = {
           accountId: this.userInfo.id,
           level: 0,
-          space: 0,
+          space: 0n,
           expireTime: 0,
         };
       }
@@ -112,7 +120,10 @@ export class UserService {
 
   async reconnectLogin() {
     const res = await this.server.auth.reconnectLogin();
-    this.setLogin(res.account, res.authorization.token, res.authorization.expireAt, res.vip, res.storage);
+    this.setLogin(res.account, res.authorization.token, res.authorization.expireAt, res.vip, {
+      usedSpace: BigInt(res.storage.usedSpace),
+      totalSpace: BigInt(res.storage.totalSpace),
+    });
   }
 
   async onAppStartup() {
@@ -127,7 +138,10 @@ export class UserService {
   private setLogin(info: IUserInfo, token: string, expireAt: number, vipInfo?: AccountVIP, storageInfo?: IStorageInfo) {
     this.userInfo = info;
     if (vipInfo) {
-      this.userInfo.vipInfo = vipInfo;
+      this.userInfo.vipInfo = {
+        ...vipInfo,
+        space: BigInt(vipInfo.space),
+      };
     }
     if (storageInfo) {
       this.userInfo.storageInfo = storageInfo;
@@ -159,7 +173,10 @@ export class UserService {
     })
       .then((res) => {
         this.message.success('登录成功');
-        this.setLogin(res.account, res.authorization.token, res.authorization.expireAt, res.vip, res.storage);
+        this.setLogin(res.account, res.authorization.token, res.authorization.expireAt, res.vip, {
+          usedSpace: BigInt(res.storage.usedSpace),
+          totalSpace: BigInt(res.storage.totalSpace),
+        });
       })
       .catch((err) => {
         // this.errorHandlingUtil.handleManualError(err, '登录失败');
@@ -194,11 +211,17 @@ export class UserService {
     const result = await this.server.auth.info();
     this.userInfo = result.account;
     if (result.vip) {
-      this.userInfo.vipInfo = result.vip;
+      this.userInfo.vipInfo = {
+        ...result.vip,
+        space: BigInt(result.vip.space)
+      };
     }
     if (result.storage) {
-      this.userInfo.storageInfo = result.storage;
-      this.storageUpdate.next(result.storage);
+      this.userInfo.storageInfo = {
+        usedSpace: BigInt(result.storage.usedSpace),
+        totalSpace: BigInt(result.storage.totalSpace),
+      };
+      this.storageUpdate.next(this.userInfo.storageInfo);
     }
     if (!this.logged.getValue()) {
       await this.reconnectLogin();
@@ -207,25 +230,25 @@ export class UserService {
       this.logged.next(true);
   }
 
-  getStorageUsed(): number {
+  getStorageUsed() {
     if (this.userInfo?.storageInfo) {
       return this.userInfo.storageInfo.usedSpace;
     }
-    return 0;
+    return 0n;
   }
 
-  getStorageMax(): number {
+  getStorageMax() {
     if (this.userInfo?.storageInfo) {
       return this.userInfo.storageInfo.totalSpace;
     }
-    return 0;
+    return 0n;
   }
 
-  isVip(): boolean {
+  isVip() {
     return !!(this.userInfo?.vipInfo && this.userInfo.vipInfo.level > 0 && this.userInfo.vipInfo.expireTime > UnixTime.now());
   }
 
-  getVipExpireTime(): number {
+  getVipExpireTime() {
     return (this.userInfo?.vipInfo?.expireTime || 0) * 1000;
   }
 }

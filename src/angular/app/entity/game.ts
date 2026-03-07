@@ -17,12 +17,12 @@ import {RemoteSave} from './remote-save';
 import {GameActivityService} from '../service/game-activity.service';
 import {ErrorHandlingUtil} from '../service/error-handling-util';
 import {SaveTransferService} from '../service/save-transfer.service';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 import {LocalGameDB} from '../../../shared/database/game';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 import {SaveDB} from '../../../shared/database/save';
 import {GameActivityType} from '../../../shared/database/game-activity';
-import {mainAPI} from '../library/api/main-api-instance';
+import {mainAPI} from '../library/api/main-api';
 import {Base64} from 'js-base64';
 
 export enum GameState {
@@ -236,7 +236,7 @@ export class Game {
         // await workerAPI.oss
         // const content = await fs.readFile(save.filename);
         // const file = new File([content as any], v4());
-        // return await this.ossService_.uploadGameSave(save);
+        return this.ossService_.uploadGameSave(save);
         // TODO
       } finally {
         clearTimeout(showNotification);

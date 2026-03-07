@@ -3,8 +3,8 @@ import {ServerService} from './server/server.service';
 import {ClientVersion} from './server/api';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {DialogService} from './dialog.service';
-import {workerAPI} from '../library/api/worker-api-instance';
-import {mainAPI} from '../library/api/main-api-instance';
+import {workerAPI} from '../library/api/worker-api';
+import {mainAPI} from '../library/api/main-api';
 
 export enum UpdateState {
   Idle = 'idle',

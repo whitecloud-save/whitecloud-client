@@ -1,7 +1,6 @@
 import {pack, unpack} from 'msgpackr';
 import {Waiter} from '../waiter';
 import {Observable, Subject} from 'rxjs';
-import type {Notify} from '@sora-soft/framework';
 
 export type IRawNetPacket<T = unknown> = IRawReqPacket<T> | IRawResPacket<unknown> | IRawOperationPacket;
 
@@ -139,7 +138,7 @@ export class Client {
         return async (body: unknown, callback?: Function) => {
           await this.channel_.ready();
 
-          const waiter = this.waiter_.wait(1000 * 10);
+          const waiter = this.waiter_.wait();
           const callbackId = callback ? ++this.callbackId_ : undefined;
           if (callback && callbackId) {
             this.callbackMap_.set(callbackId, callback);

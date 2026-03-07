@@ -60,12 +60,12 @@ export enum VIPLevel {
 export declare class AccountVIP {
     accountId: number;
     level: VIPLevel;
-    space: number;
+    space: string;
     expireTime: number;
 }
 export declare class VIPLevelConfig {
     level: VIPLevel;
-    capacity: number;
+    capacity: string;
 }
 export declare class ClientVersion {
     version: string;
@@ -92,7 +92,7 @@ export declare class UserGameSave {
     saveId: string;
     gameId: string;
     accountId: number;
-    size: number;
+    size: string;
     hostname: string;
     ossPath: string;
     remark: string;
@@ -101,7 +101,7 @@ export declare class UserGameSave {
     updateTime: number;
     directoryHash: string | null;
     zipHash: string | null;
-    directorySize: number | null;
+    directorySize: string | null;
 }
 export declare class GameHistory {
     id: string;
@@ -196,8 +196,8 @@ export declare class AuthHandler {
         };
         vip: AccountVIP;
         storage: {
-            usedSpace: number;
-            totalSpace: number;
+            usedSpace: string;
+            totalSpace: string;
         };
     }>;
     expireToken(body: void): Promise<{
@@ -221,8 +221,8 @@ export declare class AuthHandler {
         };
         vip: AccountVIP;
         storage: {
-            usedSpace: number;
-            totalSpace: number;
+            usedSpace: string;
+            totalSpace: string;
         };
     }>;
     info(body: void): Promise<{
@@ -242,8 +242,8 @@ export declare class AuthHandler {
         };
         vip: AccountVIP;
         storage: {
-            usedSpace: number;
-            totalSpace: number;
+            usedSpace: string;
+            totalSpace: string;
         };
     }>;
     register(body: IReqRegister): Promise<{}>;
@@ -342,16 +342,12 @@ export declare class BusinessHandler {
     generateGameSaveSTS(body: IReqGenerateGameSaveSTS): Promise<{
         region: string;
         bucket: string;
-        callback: {
-            callbackUrl: string;
-            callbackBody: string;
-            callbackBodyType: string;
-        };
         filename: string;
         accessKeyId: string;
         accessKeySecret: string;
         securityToken: string;
         expiration: string;
+        callback: string;
     }>;
     modifyNickname(body: IReqModifyNickname): Promise<{}>;
     syncGame(body: IReqSyncGame): Promise<UserGame>;
@@ -382,11 +378,11 @@ export interface IReqGenerateGameSaveSignature {
     remark: string;
     stared: boolean;
     hostname: string;
-    size: number;
+    size: string;
     createTime: number;
     directoryHash?: string | null;
     zipHash?: string | null;
-    directorySize?: number | null;
+    directorySize?: string | null;
 }
 export interface IReqGenerateGameSaveSignatureV4 {
     gameId: string;
@@ -394,11 +390,11 @@ export interface IReqGenerateGameSaveSignatureV4 {
     remark: string;
     stared: boolean;
     hostname: string;
-    size: number;
+    size: string;
     createTime: number;
     directoryHash?: string | null;
     zipHash?: string | null;
-    directorySize?: number | null;
+    directorySize?: string | null;
 }
 export interface IReqGenerateGameSaveSTS {
     gameId: string;
@@ -406,11 +402,11 @@ export interface IReqGenerateGameSaveSTS {
     remark: string;
     stared: boolean;
     hostname: string;
-    size: number;
+    size: string;
     createTime: number;
-    directoryHash: string;
-    zipHash: string;
-    directorySize: number;
+    directoryHash?: string | null;
+    zipHash?: string | null;
+    directorySize?: string | null;
 }
 export interface IReqModifyNickname {
     nickname: string;
@@ -447,7 +443,7 @@ export interface IReqSyncGameSave {
     updateTime: number;
     directoryHash?: string | null;
     zipHash?: string | null;
-    directorySize?: number | null;
+    directorySize?: string | null;
 }
 export interface IReqDeleteGameSave {
     gameId: string;
@@ -510,8 +506,8 @@ export interface INotifyGameSaveDelete {
     saveId: string;
 }
 export interface INotifyStorageUpdate {
-    usedSpace: number;
-    totalSpace: number;
+    usedSpace: string;
+    totalSpace: string;
 }
 export interface INotifyVipUpdate {
     level: VIPLevel;
@@ -557,7 +553,7 @@ export interface IReqAvatarUploadCallback {
 }
 export interface IReqGameSaveUploadCallback {
     accountId: number;
-    size: number;
+    size: string;
     object: string;
     gameId: string;
     saveId: string;

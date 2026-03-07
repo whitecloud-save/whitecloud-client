@@ -1,11 +1,5 @@
 import {Client, IWorkerChannel} from './client';
-import type {FsHandler} from '../../../../electron/handler/worker-handler/fs-handler';
-import type {ZipHandler} from '../../../../electron/handler/worker-handler/zip-handler';
-import type {CryptoHandler} from '../../../../electron/handler/worker-handler/crypto-handler';
-import type {DatabaseHandler} from '../../../../electron/handler/worker-handler/database-handler';
-import type {ProcessHandler} from '../../../../electron/handler/worker-handler/process-handler';
-import type {IconHandler} from '../../../../electron/handler/worker-handler/icon-handler';
-import type {UpdateHandler} from '../../../../electron/handler/worker-handler/update-handler';
+import type {FsHandler, ZipHandler, CryptoHandler, DatabaseHandler, ProcessHandler, IconHandler, UpdateHandler, OssHandler} from '../../../../shared/handlers';
 
 declare const window: ClientWindow;
 export interface ClientWindow {
@@ -53,6 +47,10 @@ export class WorkerAPI {
 
   get update() {
     return this.client_.createApi<UpdateHandler>('update');
+  }
+
+  get oss() {
+    return this.client_.createApi<OssHandler>('oss');
   }
 }
 

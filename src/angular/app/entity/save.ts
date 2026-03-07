@@ -4,7 +4,7 @@ import {UnixTime} from '../library/utility';
 import {UserGameSave} from '../service/server/api';
 import axios from 'axios';
 import {SaveDB} from '../../../shared/database/save';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 
 export enum SaveState {
   LocalAndRemote = 1,
@@ -74,7 +74,7 @@ export class Save {
     this.db_.updateTime = save.updateTime;
     this.db_.directoryHash = save.directoryHash;
     this.db_.zipHash = save.zipHash;
-    this.db_.directorySize = save.directorySize;
+    this.db_.directorySize = save.directorySize ? parseInt(save.directorySize) : null;
     this.ossPath_ = save.ossPath;
     this.save(false);
   }
@@ -117,7 +117,7 @@ export class Save {
       createTime: this.createTime,
       directoryHash: this.directoryHash,
       zipHash: this.zipHash,
-      directorySize: this.directorySize,
+      directorySize: this.directorySize?.toString(),
     };
   }
 

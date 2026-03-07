@@ -12,12 +12,12 @@ export interface FileStats {
 
 export class FsHandler extends Route {
   @Route.method
-  async readFile(filePath: string): Promise<Buffer> {
-    return await fs.readFile(filePath);
+  async readFile(filePath: string): Promise<Uint8Array> {
+    return fs.readFile(filePath);
   }
 
   @Route.method
-  async writeFile(args: { path: string; data: Buffer | string }): Promise<void> {
+  async writeFile(args: { path: string; data: Uint8Array | string }): Promise<void> {
     await fs.writeFile(args.path, args.data);
   }
 

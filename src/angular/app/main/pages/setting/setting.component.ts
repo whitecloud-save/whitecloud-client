@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {HeaderType, MainService} from '../../main.service';
 import {IconService} from '../../../service/icon.service';
-import {mainAPI} from '../../../library/api/main-api-instance';
+import {mainAPI} from '../../../library/api/main-api';
 
 @Component({
   selector: 'app-setting',

@@ -3,7 +3,7 @@ import {ErrorString} from '../library/error/ErrorString';
 import {NodeTime, UnixTime} from '../library/utility';
 import {UserErrorCode} from './server/api';
 import {GameActivityData, GameActivityDB, GameActivityType, SaveUploadFailedData} from '../../../shared/database/game-activity';
-import {workerAPI} from '../library/api/worker-api-instance';
+import {workerAPI} from '../library/api/worker-api';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 
 export interface GameActivity {

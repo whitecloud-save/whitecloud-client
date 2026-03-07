@@ -3,7 +3,7 @@ import {PathUtil} from './path-util';
 import {AbstractControl, ValidationErrors} from '@angular/forms';
 import sha1 from 'crypto-js/sha1';
 import sha256 from 'crypto-js/sha256';
-import {workerAPI} from './api/worker-api-instance';
+import {workerAPI} from './api/worker-api';
 
 export enum GamePathMark {
   GameRoot = '$GAME_ROOT',

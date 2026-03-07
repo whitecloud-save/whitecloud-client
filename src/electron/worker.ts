@@ -7,9 +7,16 @@ import {DatabaseHandler} from './handler/worker-handler/database-handler.js';
 import {ProcessHandler} from './handler/worker-handler/process-handler.js';
 import {IconHandler} from './handler/worker-handler/icon-handler.js';
 import {UpdateHandler} from './handler/worker-handler/update-handler.js';
+import {DataSource} from 'typeorm';
+import {LocalGameDB} from './database/game.js';
+import {SaveDB} from './database/save.js';
+import {GameHistoryDB} from './database/game-history.js';
+import {GameGuideDB} from './database/game-guide.js';
+import {GameActivityDB} from './database/game-activity.js';
+import {OssHandler} from './handler/worker-handler/oss-handler.js';
 
 let currentListener: ElectronMessageListener | null = null;
-let databaseHandler: DatabaseHandler | null = null;
+let dataSource: DataSource | null = null;
 
 const MessageRoute = {
   callback(handlers: Record<string, Route>): (data: IRawReqPacket<unknown>, session: string | undefined, connector: Connector) => Promise<any> {
@@ -31,6 +38,16 @@ process.parentPort.on('message', async (event) => {
   if (event.data.command === 'init-port') {
     const dbPath = event.data.dbPath;
 
+    if (!dataSource) {
+      dataSource = new DataSource({
+        type: 'sqlite',
+        database: dbPath,
+        entities: [LocalGameDB, SaveDB, GameHistoryDB, GameGuideDB, GameActivityDB],
+        synchronize: true,
+      });
+      await dataSource.initialize();
+    }
+
     if (currentListener) {
       try {
         await currentListener.close();
@@ -39,28 +56,17 @@ process.parentPort.on('message', async (event) => {
       }
     }
 
-    if (!databaseHandler) {
-      databaseHandler = new DatabaseHandler();
-      await databaseHandler.initDatabase(dbPath);
-    }
-
-    const fsHandler = new FsHandler();
-    const zipHandler = new ZipHandler();
-    const cryptoHandler = new CryptoHandler();
-    const processHandler = new ProcessHandler();
-    const iconHandler = new IconHandler();
-    const updateHandler = new UpdateHandler();
-
     currentListener = new ElectronMessageListener(
       event.ports[0],
       MessageRoute.callback({
-        'fs': fsHandler,
-        'zip': zipHandler,
-        'crypto': cryptoHandler,
-        'db': databaseHandler,
-        'process': processHandler,
-        'icon': iconHandler,
-        'update': updateHandler,
+        fs: new FsHandler(),
+        zip: new ZipHandler(),
+        crypto: new CryptoHandler(),
+        db: new DatabaseHandler(dataSource),
+        process: new ProcessHandler(),
+        icon: new IconHandler(),
+        update: new UpdateHandler(),
+        oss: new OssHandler(),
       })
     );
     await currentListener.startListen();

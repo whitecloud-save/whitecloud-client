@@ -5,23 +5,9 @@ import {LocalGameDB, SaveDB, GameHistoryDB, GameGuideDB, GameActivityDB} from '.
 export class DatabaseHandler extends Route {
   private dataSource_: DataSource | null = null;
 
-  constructor() {
+  constructor(dataSource: DataSource) {
     super();
-  }
-
-  async initDatabase(dbPath: string): Promise<void> {
-    if (this.dataSource_) {
-      return;
-    }
-
-    this.dataSource_ = new DataSource({
-      type: 'sqlite',
-      database: dbPath,
-      entities: [LocalGameDB, SaveDB, GameHistoryDB, GameGuideDB, GameActivityDB],
-      synchronize: true,
-    });
-
-    await this.dataSource_.initialize();
+    this.dataSource_ = dataSource;
   }
 
   private getRepository<T extends ObjectLiteral>(entity: new () => T) {
