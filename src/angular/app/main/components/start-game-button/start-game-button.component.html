@@ -1,11 +1,5 @@
 
 @switch (game.state | async) {
-  @case(GameState.SaveSizeExceeded) {
-    <button class="game-start-button" (click)="startGame()" nz-button nzType="primary" nzSize="large">
-      <fa-icon nz-icon [icon]="iconService.solid.faPlay"></fa-icon>
-      <span style="margin-left: 8px;">开始游戏</span>
-    </button>
-  }
   @case(GameState.Checked) {
     <button class="game-start-button" (click)="startGame()" nz-button nzType="primary" nzSize="large">
       <fa-icon nz-icon [icon]="iconService.solid.faPlay"></fa-icon>

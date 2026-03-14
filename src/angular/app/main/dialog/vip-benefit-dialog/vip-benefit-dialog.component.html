@@ -7,7 +7,8 @@
     <div class="comparison-cards">
       <div class="card free-card">
         <div class="card-header">
-          <span class="user-type">普通用户</span>
+          <span class="user-type">普通用户</span><br/>
+          <span class="user-desc">注册即可使用</span>
         </div>
 
         <div class="card-content">
@@ -47,14 +48,10 @@
         </div> -->
       </div>
 
-      <div class="card vip-card">
+      <div class="card vip-card" [ngClass]="{selected: selectedVipLevel === VIPLevel.Normal}" (click)="selectVipLevel(VIPLevel.Normal)">
         <div class="card-header">
-          <span class="user-type">高级会员</span>
-          <!-- <fa-icon [icon]="iconService.solid.faCrown" style="color: #faad14;"></fa-icon> -->
-          <!-- <div class="price">
-            <span class="price-value">¥5</span>
-            <span class="price-unit">/月</span>
-          </div> -->
+          <span class="user-type">高级会员</span><br/>
+          <span class="user-desc">适合各类存档较小的游戏玩家</span>
         </div>
 
         <div class="card-content">
@@ -89,6 +86,45 @@
           </div>
         </div>
       </div>
+
+      <div class="card vip-card" [ngClass]="{selected: selectedVipLevel === VIPLevel.Advanced}" (click)="selectVipLevel(VIPLevel.Advanced)">
+        <div class="card-header">
+          <span class="user-type">大容量会员</span><br/>
+          <span class="user-desc">适合戴森球等存档容量巨大的游戏玩家</span>
+        </div>
+
+        <div class="card-content">
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faServer"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">云储存空间</span>
+              <span class="benefit-value large">4 GB</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faFile"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">单存档大小限制</span>
+              <span class="benefit-value primary">无限制</span>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="icon-wrapper vip-icon">
+              <fa-icon [icon]="iconService.solid.faClock"></fa-icon>
+            </div>
+            <div class="benefit-details">
+              <span class="benefit-label">文件过期时间</span>
+              <span class="benefit-value primary small">永久保存 (有效期内)</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   }
 
@@ -99,20 +135,35 @@
           <nz-spin nzSimple="true"></nz-spin>
           <span>加载中...</span>
         </div>
-      } @else if (skuList.length > 0) {
+      } @else if (currentSkuList.length > 0) {
         <div class="payment-controls">
-          <nz-select
-            [(ngModel)]="selectedSku"
-            [nzCustomTemplate]="productOptionTemplate"
-            style="flex: 1; margin-right: 12px;">
-            @for (sku of skuList; track sku.id) {
-              <nz-option [nzValue]="sku" [nzLabel]="sku.name"></nz-option>
+          <div style="flex: 1; margin-right: 12px; display: flex;">
+            <nz-select
+              [disabled]="isDisabled()"
+              [(ngModel)]="selectedSku"
+              [nzCustomTemplate]="productOptionTemplate"
+              style="width: 200px; ">
+              @for (sku of currentSkuList; track sku.id) {
+                <nz-option [nzValue]="sku" [nzLabel]="sku.name"></nz-option>
+              }
+            </nz-select>
+            @if (isUpgradeVip(selectedVipLevel)) {
+              <div style="margin-left: 10px; font-size: 12px; color: #94a3b8; display: flex; align-items: center;">
+                当前高级会员剩余时间将以2:1的比例换算为大容量会员
+              </div>
             }
-          </nz-select>
-          <span class="pay-price">¥{{(selectedSku?.price || 0) / 1000}}</span>
-          <button nz-button nzType="primary" class="pay-button" (click)="pay()">
-            微信支付
-          </button>
+            @if (isDowngradeVip(selectedVipLevel)) {
+              <div style="margin-left: 10px; font-size: 12px; color: #94a3b8; display: flex; align-items: center;">
+                暂不支持会员降级
+              </div>
+            }
+          </div>
+          <div style="display: flex;">
+            <div class="pay-price">¥{{(selectedSku?.price || 0) / 1000}}</div>
+            <button nz-button nzType="primary" class="pay-button" (click)="pay()" [disabled]="isDisabled()">
+              微信支付
+            </button>
+          </div>
         </div>
         <ng-template #productOptionTemplate let-selected>
           <div class="product-option">

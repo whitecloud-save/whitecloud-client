@@ -5,6 +5,8 @@ import {DialogService} from '../../../service/dialog.service';
 import {HeaderType, MainService} from '../../main.service';
 import {Subscription} from 'rxjs';
 import {UserService} from '../../../service/user.service';
+import {SaveTransferService} from 'app/service/save-transfer.service';
+import {Router} from '@angular/router';
 
 export enum AppHeaderType {
   ImportGame = 'import-game',
@@ -33,6 +35,8 @@ export class HeaderComponent implements OnDestroy {
   title: string = '';
   icon?: string;
 
+  showLoginPopover = true;
+
   private headerSub_: Subscription;
 
   constructor(
@@ -40,8 +44,14 @@ export class HeaderComponent implements OnDestroy {
     public dialogService: DialogService,
     public mainService: MainService,
     public userService: UserService,
+    public saveTransferService: SaveTransferService,
+    private router: Router,
   ) {
     this.type = AppHeaderType.Title;
+    const notified = localStorage.getItem('app:login-notify');
+    if (notified === 'true') {
+      this.showLoginPopover = false;
+    }
 
     this.headerSub_ = this.mainService.header.subscribe((data) => {
       if (data) {
@@ -64,5 +74,15 @@ export class HeaderComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.headerSub_.unsubscribe();
+  }
+
+  navigatorToSetting() {
+    this.closeLoginPopover();
+    this.router.navigate(['/main/setting']);
+  }
+
+  closeLoginPopover() {
+    this.showLoginPopover = false;
+    localStorage.setItem('app:login-notify', 'true');
   }
 }

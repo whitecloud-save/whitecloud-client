@@ -1,7 +1,3 @@
-@if(isTransferring) {
-  <div
-    (click)="showDetails()"
-    style="display: flex; align-items: center; cursor: pointer; color: #d9d9d9;">
-    <fa-icon [icon]="icon" style="font-size: 14px;"></fa-icon>
-  </div>
-}
+<a nz-button nzType="link" nzShape="circle" (click)="onClick()">
+  <fa-icon [icon]="iconService.light.faLoader" animation="spin"></fa-icon>
+</a>

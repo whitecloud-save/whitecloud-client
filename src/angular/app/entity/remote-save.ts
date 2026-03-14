@@ -1,9 +1,9 @@
-import axios from 'axios';
 import {UserGameSave} from '../service/server/api';
 import {Game} from './game';
 import {Save, SaveState} from './save';
 import {PathUtil} from '../library/path-util';
 import {SaveDB} from '../../../shared/database/save';
+import {workerAPI} from 'app/library/api/worker-api';
 
 export class RemoteSave {
   constructor(game: Game, data: UserGameSave) {
@@ -13,13 +13,10 @@ export class RemoteSave {
 
   async download() {
     const res = await this.game_.serverService.business.signGameSaveUrl({url: this.data_.ossPath});
-
-    // TODO
-    // await axios.get(res.url, {responseType: 'arraybuffer'})
-    //   .then(async (response) => {
-    //     await mkdirp(this.game.backupSavePath);
-    //     await fs.writeFile(this.filename, Buffer.from(response.data) as NodeJS.ArrayBufferView);
-    //   });
+    await workerAPI.oss.downloadSave({
+      url: res.url,
+      savePath: this.filename,
+    });
 
     const saveDB = new SaveDB({
       id: this.id,

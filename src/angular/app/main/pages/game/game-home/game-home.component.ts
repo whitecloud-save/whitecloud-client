@@ -46,20 +46,7 @@ export class GameHomeComponent implements OnDestroy {
   }
 
   backupSave() {
-    const currentState = this.game.state.getValue();
-    if (currentState === GameState.SaveSizeExceeded) {
-      this.modal.confirm({
-        nzTitle: '确认备份',
-        nzContent: '本游戏存档文件夹容量过大，备份可能消耗较长时间与硬盘空间，是否确认继续？',
-        nzOkText: '继续',
-        nzCancelText: '取消',
-        nzOnOk: () => {
-          this.game.zipSave(true);
-        },
-      });
-    } else {
-      this.game.zipSave(true);
-    }
+    this.game.zipSave(true);
   }
 
   private watchGameState() {

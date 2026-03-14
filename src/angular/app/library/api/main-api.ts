@@ -1,5 +1,9 @@
 import {Client, IWorkerChannel} from './client';
-import type {AppHandler, DialogHandler, MenuHandler, ShellHandler, WindowHandler} from '../../../../shared/handlers';
+import type {AppHandler} from '@electron/handler/main-handler/app-handler';
+import type {DialogHandler} from '@electron/handler/main-handler/dialog-handler';
+import type {MenuHandler} from '@electron/handler/main-handler/menu-handler';
+import type {ShellHandler} from '@electron/handler/main-handler/shell-handler';
+import type {WindowHandler} from '@electron/handler/main-handler/window-handler';
 
 declare const window: ClientWindow;
 export interface ClientWindow {

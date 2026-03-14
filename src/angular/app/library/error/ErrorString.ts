@@ -23,4 +23,6 @@ export const ErrorString : {
   [UserErrorCode.ERR_DUPLICATE_REGISTER]: '该邮箱已经注册过了',
   [UserErrorCode.ERR_SPACE_NOT_ENOUGH]: '账号云空间容量不足',
   [UserErrorCode.ERR_FILE_SPACE_LIMIT]: '存档体积过大',
+  [ErrorCode.ERR_LE_PROFILE_NOT_FOUND]: 'Locale Emulator LEConfig.xml 文件未找到',
+  [ErrorCode.ERR_LE_EXE_NOT_FOUND]: 'Locale Emulator LEProc.exe 文件未找到',
 };

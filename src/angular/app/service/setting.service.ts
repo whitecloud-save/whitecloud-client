@@ -1,8 +1,10 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {PathUtil} from '../library/path-util';
-import xml2js from 'xml2js';
 import {workerAPI} from '../library/api/worker-api';
+import {BaseError} from 'app/library/error/BaseError';
+import {ErrorCode} from 'app/library/error/ErrorCode';
+import {ErrorString} from 'app/library/error/ErrorString';
 
 @Injectable({
   providedIn: 'root',
@@ -12,11 +14,22 @@ export class SettingService {
   public useLE: boolean;
   public LEExePath: string;
   public globalSaveBackupLimit: number;
+  public LEError?: Error;
 
   public LEProfileSelections: BehaviorSubject<{label: string; value: string}[]>;
 
   get LEAvailable() {
-    return this.useLE && this.LEExePath;
+    return this.useLE && this.LEExePath && !this.LEError;
+  }
+
+  get LEErrorString() {
+    if (!this.LEError)
+      return '';
+    if (this.LEError instanceof BaseError) {
+      return ErrorString[this.LEError.code] as string || this.LEError.message;
+    }
+
+    return this.LEError.message;
   }
 
   constructor() {
@@ -41,16 +54,32 @@ export class SettingService {
       LEExePath: this.LEExePath,
       globalSaveBackupLimit: this.globalSaveBackupLimit,
     }));
+
+    this.updateLEProfile();
   }
 
   async updateLEProfile() {
     if (this.useLE && this.LEExePath) {
-      const xml = await workerAPI.fs.readFile(PathUtil.join(PathUtil.dirname(this.LEExePath), 'LEConfig.xml'));
-      const parser = new xml2js.Parser();
-      const profile = await parser.parseStringPromise(xml);
+      try {
+        const exeExisted = await workerAPI.fs.exists(this.LEExePath);
+        if (!exeExisted)
+          throw new BaseError(ErrorCode.ERR_LE_EXE_NOT_FOUND);
 
-      const configList = profile.LEConfig.Profiles[0].Profile.map((p: any) => ({label: p.$.Name, value: p.$.Guid}));
-      this.LEProfileSelections.next(configList);
+        const configPath = PathUtil.join(PathUtil.dirname(this.LEExePath), 'LEConfig.xml');
+        const configExisted = await workerAPI.fs.exists(configPath);
+        if (!configExisted)
+          throw new BaseError(ErrorCode.ERR_LE_PROFILE_NOT_FOUND);
+
+        const parsed = await workerAPI.fs.readXML(configPath);
+        const configList = parsed.LEConfig.Profiles[0].Profile.map((p: any) => ({label: p.$.Name, value: p.$.Guid}));
+        this.LEProfileSelections.next(configList);
+
+        this.LEError = undefined;
+      } catch (err) {
+        this.LEError = err as Error;
+      }
+    } else {
+      this.LEError = undefined;
     }
   }
 }

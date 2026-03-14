@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, ViewChild} from '@angular/core';
 import {Save, SaveState} from '../../../entity/save';
 import {Game} from '../../../entity/game';
 import {Utility} from '../../../library/utility';
@@ -35,6 +35,9 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
   pageSize = 0;
   loading = true;
   isTransferring = false;
+  isDeleteSaveSelectModalVisible = false;
+  deletingSave: Save | null = null;
+
   private resizeSub_?: Subscription;
   private destroy$ = new Subject<void>();
 
@@ -47,21 +50,22 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
     private gameService: GameService,
     private errorHandlingUtil: ErrorHandlingUtil,
     private saveTransferService: SaveTransferService,
+    private zone: NgZone,
   ) {}
 
   ngAfterViewInit() {
     this.resizeSub_ = Utility.resizeObservable(this.container.nativeElement).pipe(
       debounceTime(100),
     ).subscribe(() => {
-      this.loading = false;
-      this.pageSize = Math.floor((this.container.nativeElement.offsetHeight - 115) / 56);
+      this.zone.run(() => {
+        this.loading = false;
+        this.pageSize = Math.floor((this.container.nativeElement.offsetHeight - 115) / 56);
+      })
     });
 
-    this.saveTransferService.state$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
-        this.isTransferring = state.isTransferring;
-      });
+    this.saveTransferService.transferRefObservable().subscribe((ref) => {
+      this.isTransferring = ref > 0;
+    });
   }
 
   ngOnDestroy(): void {
@@ -114,25 +118,45 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  deleteSave(save: Save) {
+  deleteLocalSave(save: Save) {
+    this.modal.confirm({
+      nzTitle: '确认删除存档？',
+      nzContent: '删除存档后无法恢复',
+      nzOkText: '删除',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.doDeleteLocalSave(save);
+      },
+    });
+  }
+
+  doDeleteLocalSave(save: Save) {
+    this.isDeleteSaveSelectModalVisible = false;
+
+    save.delete()
+      .then(() => {
+        this.message.success('删除成功');
+      })
+      .catch((err) => {
+        this.errorHandlingUtil.handleManualError(err, '删除存档失败');
+      });
+  }
+
+  deleteSave(save: Save | RemoteSave) {
+    if (save instanceof Save && save.ossPath) {
+      this.isDeleteSaveSelectModalVisible = true;
+      this.deletingSave = save;
+      return;
+    }
+
     if (save.ossPath) {
       this.deleteRemoteSave(save);
-    } else {
-      this.modal.confirm({
-        nzTitle: '确认删除存档？',
-        nzContent: '删除存档后无法恢复',
-        nzOkText: '删除',
-        nzOkDanger: true,
-        nzOnOk: () => {
-          save.delete()
-            .then(() => {
-              this.message.success('删除成功');
-            })
-            .catch((err) => {
-              this.errorHandlingUtil.handleManualError(err, '删除存档失败');
-            });
-        },
-      });
+      return;
+    }
+
+    if (save instanceof Save) {
+      this.deleteLocalSave(save);
+      return;
     }
   }
 
@@ -145,21 +169,28 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
   }
 
   deleteRemoteSave(save: RemoteSave | Save) {
+
     this.modal.confirm({
       nzTitle: '确认删除云端存档？',
       nzContent: '删除云端存档后将会同步到所有登录该账号的客户端并且无法恢复',
       nzOkText: '删除',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.gameService.deleteRemoteSave(save)
-          .then(() => {
-            this.message.success('删除成功');
-          })
-          .catch((err) => {
-            this.errorHandlingUtil.handleManualError(err, '删除云端存档失败');
-          });
+        this.doDeleteRemoteSave(save);
       },
     });
+  }
+
+  doDeleteRemoteSave(save: RemoteSave | Save) {
+    this.isDeleteSaveSelectModalVisible = false;
+
+    this.gameService.deleteRemoteSave(save)
+      .then(() => {
+        this.message.success('删除成功');
+      })
+      .catch((err) => {
+        this.errorHandlingUtil.handleManualError(err, '删除云端存档失败');
+      });
   }
 
   async editSave(save: Save) {

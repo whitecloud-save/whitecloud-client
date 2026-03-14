@@ -1,6 +1,6 @@
 .vip-benefit-dialog {
   background: white;
-  height: 350px;
+  height: 380px;
 }
 
 .dialog-header {
@@ -26,15 +26,21 @@
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  // display: flex;
+  // justify-content: space-between;
+  // align-items: center;
   width: 100%;
+  height: 70px;
 
   .user-type {
     font-size: 16px;
     font-weight: 500;
     color: #1e293b;
+  }
+
+  .user-desc {
+    color: #64748b;
+    font-size: 13px;
   }
 }
 
@@ -142,7 +148,7 @@
 
 .free-card {
   background: rgba(248, 250, 252, 0.5);
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
 
   .icon-wrapper {
     background: #e2e8f0;
@@ -150,10 +156,16 @@
 }
 
 .vip-card {
-  background: white;
-  border: 2px solid #2563eb;
-  box-shadow: 0px 10px 15px -3px rgba(37, 99, 235, 0.1), 0px 4px 6px -4px rgba(37, 99, 235, 0.1);
-  overflow: hidden;
+  &.selected {
+    background: white;
+    border: 2px solid #2563eb;
+    box-shadow: 0px 10px 15px -3px rgba(37, 99, 235, 0.1), 0px 4px 6px -4px rgba(37, 99, 235, 0.1);
+    overflow: hidden;
+  }
+
+  cursor: pointer;
+  background: rgba(248, 250, 252, 0.5);
+  border: 2px solid #e2e8f0;
 
   .upgrade-button {
     width: 100%;
@@ -225,6 +237,7 @@
   color: #2563eb;
   min-width: 80px;
   text-align: right;
+  margin-right: 20px;
 }
 
 .product-option {

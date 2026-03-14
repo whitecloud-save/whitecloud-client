@@ -55,7 +55,8 @@ export declare class AccountAuthGroup {
 }
 export enum VIPLevel {
     None = 0,
-    Normal = 1
+    Normal = 1,
+    Advanced = 2
 }
 export declare class AccountVIP {
     accountId: number;
@@ -115,7 +116,10 @@ export declare class GameHistory {
 export enum SKUIdentify {
     VIP = "vip",
     VIP2 = "vip2",
-    VIP3 = "vip3"
+    VIP3 = "vip3",
+    SVIP1 = "svip1",
+    SVIP2 = "svip2",
+    SVIP3 = "svip3"
 }
 export enum ProductSKUState {
     OnSale = 1,
@@ -128,7 +132,10 @@ export declare class ProductSKU {
     name: string;
     remark: string;
     state: ProductSKUState;
-    args: unknown;
+    args: {
+        duration: string;
+        vipLevel: VIPLevel;
+    };
 }
 export interface ProductSKUSnapshot {
     version: number;
@@ -583,6 +590,7 @@ export interface IRespFetchProductSKU {
     identify: SKUIdentify;
     name: string;
     price: number;
+    level: VIPLevel;
 }
 export declare class WechatCallbackHandler {
     wechatPayCallback(body: IReqWechatMerchantCallback): Promise<{}>;

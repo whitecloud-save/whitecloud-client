@@ -1,5 +1,12 @@
 import {Client, IWorkerChannel} from './client';
-import type {FsHandler, ZipHandler, CryptoHandler, DatabaseHandler, ProcessHandler, IconHandler, UpdateHandler, OssHandler} from '../../../../shared/handlers';
+import type {OssHandler} from '@electron/handler/worker-handler/oss-handler';
+import type {UpdateHandler} from '@electron/handler/worker-handler/update-handler';
+import type {FsHandler} from '@electron/handler/worker-handler/fs-handler';
+import type {IconHandler} from '@electron/handler/worker-handler/icon-handler';
+import type {ProcessHandler} from '@electron/handler/worker-handler/process-handler';
+import type {DatabaseHandler} from '@electron/handler/worker-handler/database-handler';
+import type {CryptoHandler} from '@electron/handler/worker-handler/crypto-handler';
+import type {ZipHandler} from '@electron/handler/worker-handler/zip-handler';
 
 declare const window: ClientWindow;
 export interface ClientWindow {

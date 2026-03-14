@@ -1,6 +1,7 @@
 import {Route} from '@sora-soft/framework';
 import fs from 'fs/promises';
 import path from 'path';
+import xml2js from 'xml2js';
 
 export interface FileStats {
   isFile(): boolean;
@@ -97,5 +98,22 @@ export class FsHandler extends Route {
       mtime: stats.mtime,
       ctime: stats.ctime,
     };
+  }
+
+  @Route.method
+  async readXML(filePath: string) {
+    const xml = await fs.readFile(filePath);
+    // const xml = await workerAPI.fs.readFile(PathUtil.join(PathUtil.dirname(this.LEExePath), 'LEConfig.xml'));
+      const parser = new xml2js.Parser();
+      const parsed = await parser.parseStringPromise(xml);
+      return parsed;
+      try {
+
+        // const configList = profile.LEConfig.Profiles[0].Profile.map((p: any) => ({label: p.$.Name, value: p.$.Guid}));
+        // return configl
+        // this.LEProfileSelections.next(configList);
+      } catch (err) {
+        console.log(err);
+      }
   }
 }

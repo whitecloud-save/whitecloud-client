@@ -1,1 +1,24 @@
 <router-outlet></router-outlet>
+
+<ng-template #progressTpl let-notification let-data="data">
+  <div class="progress-notification">
+    <div style="display: flex; justify-content: center; align-items: flex-start; margin-right: 16px;">
+      @if(data.icon) {
+        <img [src]="data.icon" style="width: 25px; height: 25px; border-radius: 6px;">
+      } @else {
+        <fa-icon [icon]="iconService.solid.faGamepad" style="width: 20px; text-align: center;"></fa-icon>
+      }
+    </div>
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-weight: 500; margin-bottom: 8px; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        {{ data.title }}
+      </div>
+      <span style="font-size: 14px;">存档{{ data.type }}中...</span>
+    </div>
+  </div>
+  <ng-container *ngIf="data.progress$ | async as progress">
+    <div style="width: 100%; margin-top: 16px;">
+      <div [style]="{width: progress + '%'}" class="bottom-progress"></div>
+    </div>
+  </ng-container>
+</ng-template>

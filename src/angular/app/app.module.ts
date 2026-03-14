@@ -22,23 +22,31 @@ import {NzTypographyModule} from 'ng-zorro-antd/typography';
 import {GameRouteReuseStrategy} from './game-route-reuse-strategy';
 import {UpdateService} from './service/update.service';
 import {DialogService} from './service/dialog.service';
+import {NzProgressModule} from 'ng-zorro-antd/progress';
 
-@NgModule({ declarations: [AppComponent],
-    bootstrap: [AppComponent], imports: [BrowserModule,
-        FormsModule,
-        ReactiveFormsModule,
-        BrowserAnimationsModule,
-        AppRoutingModule,
-        FontAwesomeModule,
-        NzImageModule,
-        NzTypographyModule,
-        NzIconModule.forRoot([UserOutline])], providers: [
-        NzModalService,
-        { provide: ServerService, useClass: WebsocketServerService },
-        { provide: ErrorHandler, useClass: ErrorHandlerService },
-        { provide: RouteReuseStrategy, useClass: GameRouteReuseStrategy },
-        provideHttpClient(withInterceptorsFromDi()),
-    ] })
+@NgModule({
+  declarations: [AppComponent],
+  bootstrap: [AppComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    BrowserAnimationsModule,
+    AppRoutingModule,
+    FontAwesomeModule,
+    NzImageModule,
+    NzTypographyModule,
+    NzProgressModule,
+    NzIconModule.forRoot([UserOutline])
+  ],
+  providers: [
+    NzModalService,
+    { provide: ServerService, useClass: WebsocketServerService },
+    { provide: ErrorHandler, useClass: ErrorHandlerService },
+    { provide: RouteReuseStrategy, useClass: GameRouteReuseStrategy },
+    provideHttpClient(withInterceptorsFromDi()),
+  ]
+})
 export class AppModule {
   constructor(
     private gameService: GameService,
@@ -49,7 +57,6 @@ export class AppModule {
   }
 
   async startup() {
-    console.log('startup');
     await this.settingService.load();
     await this.gameService.init();
     await this.updateService.onApplicationStartup();

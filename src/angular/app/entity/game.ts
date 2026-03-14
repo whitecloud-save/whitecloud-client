@@ -16,7 +16,6 @@ import {OssService} from '../service/oss.service';
 import {RemoteSave} from './remote-save';
 import {GameActivityService} from '../service/game-activity.service';
 import {ErrorHandlingUtil} from '../service/error-handling-util';
-import {SaveTransferService} from '../service/save-transfer.service';
 import {workerAPI} from '../library/api/worker-api';
 import {LocalGameDB} from '../../../shared/database/game';
 import {GameHistoryDB} from '../../../shared/database/game-history';
@@ -30,7 +29,6 @@ export enum GameState {
   Checked = 2,
   Running = 3,
   Saving = 4,
-  SaveSizeExceeded = 5,
 
   Cloud = 80,
   Error = 99,
@@ -47,7 +45,6 @@ export class Game {
     ossService: OssService,
     gameActivityService: GameActivityService,
     private errorHandlingUtil: ErrorHandlingUtil,
-    private saveTransferService: SaveTransferService,
   ) {
     this.db_ = db;
     this.coverImage_ = new CacheImage(db.coverImgUrl, serverService);
@@ -61,7 +58,6 @@ export class Game {
     this.userService_ = userService;
     this.ossService_ = ossService;
     this.gameActivityService_ = gameActivityService;
-    this.saveTransferService_ = saveTransferService;
 
     this.runningProcess_ = new Set();
     this.saves_ = [];
@@ -225,23 +221,8 @@ export class Game {
   }
 
   async uploadSave(save: Save) {
-    if (this.userService_.isOnline()) {
-      this.saveTransferService_.startTransfer('upload', save.id, this.id, save.remark);
-
-      const showNotification = setTimeout(() => {
-        this.saveTransferService_.showProgressNotification(this.name, 'upload');
-      }, 1000);
-
-      try {
-        // await workerAPI.oss
-        // const content = await fs.readFile(save.filename);
-        // const file = new File([content as any], v4());
-        return this.ossService_.uploadGameSave(save);
-        // TODO
-      } finally {
-        clearTimeout(showNotification);
-        this.saveTransferService_.endTransfer();
-      }
+    if (this.userService_.isOnline() && this.enableCloudSave_) {
+      return this.ossService_.uploadGameSave(save);
     }
     return false;
   }
@@ -281,14 +262,17 @@ export class Game {
   }
 
   async startGame() {
-    // TODO
-    // if (this.settingService_.useLE && this.extractSetting.LEProfile) {
-    //   spawn(this.settingService_.LEExePath, ['-runas', this.extractSetting.LEProfile, this.exeFilePath]);
-    // } else {
-    //   spawn(this.exeFilePath, {
-    //     cwd: path.dirname(this.exeFilePath),
-    //   });
-    // }
+    if (this.settingService_.useLE && this.extractSetting.LEProfile) {
+      workerAPI.process.spawn({
+        exe: this.settingService_.LEExePath,
+        params: ['-runas', this.extractSetting.LEProfile, this.exeFilePath]
+      });
+    } else {
+      workerAPI.process.spawn({
+        exe: this.exeFilePath,
+        cwd: PathUtil.dirname(this.exeFilePath),
+      });
+    }
 
     if (this.db_.autoOpenGuide) {
       this.openGameGuide();
@@ -379,10 +363,10 @@ export class Game {
       if (this.state_.getValue() === GameState.Error)
         return;
 
-      if (!force && await this.checkSaveSizeExceeded()) {
-        this.setState(GameState.SaveSizeExceeded);
-        return;
-      }
+      // if (!force && await this.checkSaveSizeExceeded()) {
+      //   this.setState(GameState.SaveSizeExceeded);
+      //   return;
+      // }
 
       this.setState(GameState.Saving);
       const directoryHash = await Utility.calculateDirectoryHash(this.savePath);
@@ -594,6 +578,56 @@ export class Game {
     }
   }
 
+  addHistory(history: GameHistoryDB) {
+    this.history_ = [...this.history_, history];
+    this.notifyActivityUpdate();
+  }
+
+  async updateLastGameHistorySyncTime(time: number) {
+    this.db_.lastGameHistorySyncTime = time;
+    await this.save(false);
+  }
+
+  getEffectiveSaveBackupLimit(): number {
+    if (this.db_.useCustomSaveBackupLimit) {
+      return this.db_.saveBackupLimit * 1024 * 1024;
+    }
+    return this.settingService_.globalSaveBackupLimit * 1024 * 1024;
+  }
+
+  // async checkSaveSizeExceeded(): Promise<boolean> {
+  //   try {
+  //     const directorySize = await Utility.calculateDirectorySize(this.savePath);
+  //     const limit = this.getEffectiveSaveBackupLimit();
+  //     return directorySize > limit;
+  //   } catch {
+  //     return false;
+  //   }
+  // }
+
+  getCurrentSave(): Save | null {
+    return this.currentSave_;
+  }
+
+  async updateCurrentSave(): Promise<void> {
+    try {
+      const currentDirHash = await Utility.calculateDirectoryHash(this.savePath);
+      const currentDirSize = await Utility.calculateDirectorySize(this.savePath);
+
+      const matchingSave = this.availableLocalSaves
+        .filter(save => save.directoryHash === currentDirHash && save.directorySize === currentDirSize)
+        .sort((a, b) => b.createTime - a.createTime)[0];
+
+      this.currentSave_ = matchingSave || null;
+    } catch (error) {
+      this.currentSave_ = null;
+    }
+  }
+
+  notifyActivityUpdate() {
+    this.activityUpdate$.next(this.id);
+  }
+
   get syncData() {
     return {
       gameId: this.id,
@@ -775,23 +809,6 @@ export class Game {
     this.enableCloudSave_ = value;
   }
 
-  getEffectiveSaveBackupLimit(): number {
-    if (this.db_.useCustomSaveBackupLimit) {
-      return this.db_.saveBackupLimit * 1024 * 1024;
-    }
-    return this.settingService_.globalSaveBackupLimit * 1024 * 1024;
-  }
-
-  async checkSaveSizeExceeded(): Promise<boolean> {
-    try {
-      const directorySize = await Utility.calculateDirectorySize(this.savePath);
-      const limit = this.getEffectiveSaveBackupLimit();
-      return directorySize > limit;
-    } catch {
-      return false;
-    }
-  }
-
   get serverService() {
     return this.serverService_;
   }
@@ -800,41 +817,12 @@ export class Game {
     return this.userService_;
   }
 
-  addHistory(history: GameHistoryDB) {
-    this.history_ = [...this.history_, history];
-    this.notifyActivityUpdate();
-  }
-
-  async updateLastGameHistorySyncTime(time: number) {
-    this.db_.lastGameHistorySyncTime = time;
-    await this.save(false);
-  }
-
   get iconPath() {
     return this.iconPath_;
   }
 
-  getCurrentSave(): Save | null {
-    return this.currentSave_;
-  }
-
-  async updateCurrentSave(): Promise<void> {
-    try {
-      const currentDirHash = await Utility.calculateDirectoryHash(this.savePath);
-      const currentDirSize = await Utility.calculateDirectorySize(this.savePath);
-
-      const matchingSave = this.availableLocalSaves
-        .filter(save => save.directoryHash === currentDirHash && save.directorySize === currentDirSize)
-        .sort((a, b) => b.createTime - a.createTime)[0];
-
-      this.currentSave_ = matchingSave || null;
-    } catch (error) {
-      this.currentSave_ = null;
-    }
-  }
-
-  notifyActivityUpdate() {
-    this.activityUpdate$.next(this.id);
+  get ossService() {
+    return this.ossService_;
   }
 
   private db_: LocalGameDB;
@@ -858,7 +846,6 @@ export class Game {
   private userService_: UserService;
   private ossService_: OssService;
   private gameActivityService_: GameActivityService;
-  private saveTransferService_: SaveTransferService;
   public activityUpdate$: BehaviorSubject<string>;
 
   private guideWindowId_: number;

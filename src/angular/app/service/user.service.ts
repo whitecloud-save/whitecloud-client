@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {ServerService, ServerState} from './server/server.service';
 import {TokenService} from './server/token.service';
-import {AccountLoginType, AccountVIP, ClientNotifyHandler, UserErrorCode, INotifyStorageUpdate, INotifyVipUpdate, INotifyPaymentSuccess} from './server/api';
+import {AccountLoginType, AccountVIP, ClientNotifyHandler, UserErrorCode, INotifyStorageUpdate, INotifyVipUpdate, INotifyPaymentSuccess, VIPLevel} from './server/api';
 import {BehaviorSubject} from 'rxjs';
 import {interval, switchMap} from 'rxjs';
 import {NzMessageService} from 'ng-zorro-antd/message';
@@ -209,7 +209,21 @@ export class UserService {
 
   async fetchUserInfo() {
     const result = await this.server.auth.info();
-    this.userInfo = result.account;
+    if (!this.userInfo) {
+      this.userInfo = result.account;
+    } else {
+      this.userInfo.nickname = result.account.nickname;
+      if (!this.userInfo.avatar || !result.account.avatar) {
+        this.userInfo.avatar = result.account.avatar;
+      } else {
+        const origin = new URL(this.userInfo.avatar);
+        const response = new URL(result.account.avatar);
+
+        if (origin.pathname !== response.pathname) {
+          this.userInfo.avatar = result.account.avatar;
+        }
+      }
+    }
     if (result.vip) {
       this.userInfo.vipInfo = {
         ...result.vip,
@@ -246,6 +260,10 @@ export class UserService {
 
   isVip() {
     return !!(this.userInfo?.vipInfo && this.userInfo.vipInfo.level > 0 && this.userInfo.vipInfo.expireTime > UnixTime.now());
+  }
+
+  getVipLevel() {
+    return this.getVipExpireTime() > UnixTime.now() ? this.userInfo!.vipInfo!.level : VIPLevel.None;
   }
 
   getVipExpireTime() {

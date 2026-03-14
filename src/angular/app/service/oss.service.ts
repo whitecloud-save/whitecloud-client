@@ -9,6 +9,8 @@ import {ErrorCode} from '../library/error/ErrorCode';
 import {Save} from '../entity/save';
 import {ConnectionStateService} from './connection-state.service';
 import {workerAPI} from '../library/api/worker-api';
+import {RemoteSave} from 'app/entity/remote-save';
+import {SaveProgressType, SaveTransferService} from './save-transfer.service';
 
 interface IUploadFormData {
   name: string;
@@ -20,13 +22,19 @@ interface IUploadFormData {
   file: File;
 }
 
+export type Progress = {
+  percent: number;
+  transferred: number;
+  total?: number;
+};
+
 @Injectable({
   providedIn: 'root',
 })
 export class OssService {
   constructor(
     private server: ServerService,
-    private connectionStateService: ConnectionStateService,
+    private saveTransfer: SaveTransferService,
   ) {}
 
   private buildFormData(data: IUploadFormData) {
@@ -44,73 +52,66 @@ export class OssService {
     return formData;
   }
 
+  async downloadGameSave(save: Save | RemoteSave) {
+    if (!save.ossPath)
+      throw new BaseError(ErrorCode.ERR_SAVE_MISS_OSS_PATH, 'download save without oss path');
+
+    const notification = this.saveTransfer.startSaveTransfer(save.game.name, save.game.iconPath, SaveProgressType.Download);
+    notification.start();
+
+    const res = await this.server.business.signGameSaveUrl({url: save.ossPath});
+    await workerAPI.oss.downloadSave({
+      url: res.url,
+      savePath: save.filename,
+    }, (progress: Progress) => {
+      notification.update(progress.percent * 100);
+    }).finally(() => {
+      notification.close();
+    });;
+  }
+
   async uploadGameSave(save: Save) {
-    this.connectionStateService.startRequest();
-    try {
-      // const data = await this.server.business.generateGameSaveSTS({
-      //   gameId: save.game.id,
-      //   saveId: save.id,
-      //   remark: save.remark,
-      //   size: save.size.toString(),
-      //   stared: save.stared,
-      //   hostname: save.hostname,
-      //   createTime: save.createTime,
-      //   directoryHash: save.directoryHash,
-      //   zipHash: save.zipHash,
-      //   directorySize: save.directorySize?.toString(),
-      // });
+    const notification = this.saveTransfer.startSaveTransfer(save.game.name, save.game.iconPath, SaveProgressType.Upload);
+    notification.start();
 
+    const data = await this.server.business.generateGameSaveSignatureV4({
+      gameId: save.game.id,
+      saveId: save.id,
+      remark: save.remark,
+      size: save.size.toString(),
+      stared: save.stared,
+      hostname: save.hostname,
+      createTime: save.createTime,
+      directoryHash: save.directoryHash,
+      zipHash: save.zipHash,
+      directorySize: save.directorySize?.toString(),
+    });
 
-      const data = await this.server.business.generateGameSaveSignatureV4({
-        gameId: save.game.id,
-        saveId: save.id,
-        remark: save.remark,
-        size: save.size.toString(),
-        stared: save.stared,
-        hostname: save.hostname,
-        createTime: save.createTime,
-        directoryHash: save.directoryHash,
-        zipHash: save.zipHash,
-        directorySize: save.directorySize?.toString(),
-      });
+    await workerAPI.oss.uploadSave({
+      ...data,
+      saveFilePath: save.filename,
+    }, (progress: Progress) => {
+      notification.update(progress.percent * 100);
+    }).finally(() => {
+      notification.close();
+    });
 
-      await workerAPI.oss.uploadSave({
-        ...data,
-        saveFilePath: save.filename,
-      });
-
-      return data.filename;
-
-      // const formData = this.buildFormData({
-      //   name,
-      //   ...data,
-      //   file,
-      // });
-      // await fetch(data.host, {method: 'POST', body: formData});
-      // return data.dir + name;
-    } finally {
-      this.connectionStateService.endRequest();
-    }
+    return data.filename;
   }
 
   async uploadAvatar(file: File) {
     if (file.size > 1024 * 1024)
       throw new BaseError(ErrorCode.ERR_IMAGE_TOO_LARGE, 'ERR_IMAGE_TOO_LARGE', {max: '1mb'});
 
-    this.connectionStateService.startRequest();
-    try {
-      const data = await this.server.business.generateAvatarUploadSignature();
-      const name = v4();
-      const formData = this.buildFormData({
-        name,
-        ...data,
-        file,
-      });
-      await fetch(data.host, {method: 'POST', body: formData});
-      return data.dir + name;
-    } finally {
-      this.connectionStateService.endRequest();
-    }
+    const data = await this.server.business.generateAvatarUploadSignature();
+    const name = v4();
+    const formData = this.buildFormData({
+      name,
+      ...data,
+      file,
+    });
+    await fetch(data.host, {method: 'POST', body: formData});
+    return data.dir + name;
   }
 
   async uploadGameCover(gameId: string, file: File) {
@@ -128,25 +129,5 @@ export class OssService {
     });
     await fetch(data.host, {method: 'POST', body: formData});
     return data.dir + name;
-  }
-
-  async readUrl(url: string): Promise<Uint8Array> {
-    const urlPath = new URL(url);
-    switch(urlPath.protocol) {
-      case 'file:': {
-        return workerAPI.fs.readFile(decodeURI(urlPath.pathname.slice(1)));
-      }
-      case 'oss:': {
-        const res = await axios.get(`${APP_CONFIG.ossEndpoint}${urlPath.pathname}`, {responseType: 'arraybuffer'});
-        return res.data as Uint8Array;
-      }
-      case 'http:':
-      case 'https:': {
-        const res = await axios.get(url, {responseType: 'arraybuffer'});
-        return res.data as Uint8Array;
-      }
-      default:
-        throw new Error('protocol not supported');
-    }
   }
 }

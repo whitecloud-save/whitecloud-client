@@ -21,14 +21,36 @@
     </div>
   }
   <div style="padding-right: 20px; display: flex; align-items: center; gap: 10px;">
-    @if(userService.logged | async) {
+    @if(saveTransferService.transferRefObservable() | async) {
       <app-save-transfer-indicator style="margin-right: 10px;"></app-save-transfer-indicator>
+    }
+    @if(userService.logged | async) {
       <app-connection-indicator style="margin-right: 10px;"></app-connection-indicator>
     }
     @if(userService.userInfo?.avatar) {
-      <nz-avatar nzSize="large" [nzSrc]="userService.avatarUrl"></nz-avatar>
+      <nz-avatar style="cursor: pointer;" nzSize="large" [nzSrc]="userService.avatarUrl" (click)="navigatorToSetting()"></nz-avatar>
     } @else {
-      <nz-avatar nzSize="large" nzIcon="user"></nz-avatar>
+      <nz-avatar
+        style="cursor: pointer;"
+        nzSize="large"
+        nzIcon="user"
+        nz-popover
+        nzPopoverPlacement="bottomRight"
+        [nzPopoverTrigger]="null"
+        [nzPopoverVisible]="showLoginPopover"
+        [nzPopoverContent]="contentTemplate"
+        (click)="navigatorToSetting()">
+      </nz-avatar>
     }
   </div>
 </div>
+
+
+<ng-template #contentTemplate>
+  <div style="margin-bottom: 10px;">
+    登录后开启云同步功能
+  </div>
+  <div style="display: flex; justify-content: flex-end;">
+    <button nz-button nzSize="small" nzType="link" (click)="closeLoginPopover()">关闭</button>
+  </div>
+</ng-template>

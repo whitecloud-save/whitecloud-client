@@ -93,7 +93,10 @@ export class DialogService {
       nzTitle: '',
       nzFooter: null,
       nzClassName: 'vip-benefit-modal',
-      nzMaskClosable: true,
+      nzMaskClosable: false,
+      nzWidth: 730,
+      nzCentered: true,
+      nzKeyboard: false,
     });
   }
 

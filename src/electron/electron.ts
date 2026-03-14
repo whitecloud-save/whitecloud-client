@@ -130,6 +130,7 @@ const quitApp = () => {
 
 const createTray = (): void => {
   const iconPath = path.join(__dirname, '../angular/assets/icon.png');
+  console.log(iconPath);
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
 

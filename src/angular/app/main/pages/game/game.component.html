@@ -30,12 +30,6 @@
         }
       }
     </div>
-    @if((game.state | async) === GameState.SaveSizeExceeded) {
-      <div class="save-size-exceeded-banner">
-        <span>本游戏存档文件夹容量过大，当前自动备份存档功能已被禁用</span>
-        <button nz-button nzType="link" (click)="navigateToSetting()">去设置</button>
-      </div>
-    }
   }
   <div style="flex: 1; width: 100%;" class="thin-scrollbar">
     <router-outlet></router-outlet>

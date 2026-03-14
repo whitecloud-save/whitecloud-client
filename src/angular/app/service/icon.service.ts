@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {faFolder, faStar, faRotateRight, faTrash, faCircleQuestion, faImage, faPen, faDownload, faUpload} from '@fortawesome/pro-light-svg-icons';
+import {faFolder, faStar, faRotateRight, faTrash, faCircleQuestion, faImage, faPen, faDownload, faUpload, faLoader} from '@fortawesome/pro-light-svg-icons';
 import {faLink, faPlus, faFileCircleXmark, faEllipsis, faFolder as solidFaFolder, faStar as SolidStar, faBadgeCheck, faCircleCheck, faCheck, faPlay, faGear, faExclamation, faGamepad, faServer, faFile, faClock, faUser, faCrown, faArrowRight, faCloudArrowUp, faCloudArrowDown, faCircleExclamation} from '@fortawesome/pro-solid-svg-icons';
 import {faQq, faGithub} from '@fortawesome/free-brands-svg-icons';
 
@@ -18,6 +18,7 @@ export class IconService {
     faPen,
     faDownload,
     faUpload,
+    faLoader,
   };
 
   public solid = {

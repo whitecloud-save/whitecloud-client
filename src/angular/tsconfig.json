@@ -2,7 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../dist/angular",
-    "types": []
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "@electron/handler/main-handler/*": ["../../dist/types/electron/handler/main-handler/*"],
+      "@electron/handler/worker-handler/*": ["../../dist/types/electron/handler/worker-handler/*"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

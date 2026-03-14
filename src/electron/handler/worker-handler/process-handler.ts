@@ -37,4 +37,10 @@ export class ProcessHandler extends Route {
     const list = binding.listProcesses();
     return list;
   }
+
+  @Route.method
+  async spawn(args: {exe: string, params?: string[], cwd?: string}) {
+    spawn(args.exe, args.params || [], {cwd: args.cwd});
+    return {};
+  }
 }

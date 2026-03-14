@@ -25,7 +25,7 @@
   @if (userService.isVip()) {
   <div class="vip-info" style="padding-left: 20px; border-radius: 8px;">
     <div class="vip-expire">
-      <span>高级会员到期：</span>
+      <span>{{vipType}}到期：</span>
       <span>{{userService.getVipExpireTime() | date:'yyyy-MM-dd'}}</span>
     </div>
     <div style="margin-top: 10px;">
@@ -40,7 +40,7 @@
       <div class="storage-text">
         <span>已使用：{{storageUsed | fileSize}} / {{storageMax | fileSize}}</span>
       </div>
-      <nz-progress [nzPercent]="storagePercentage" [nzStrokeColor]="'#1890ff'" [nzShowInfo]="false"></nz-progress>
+      <nz-progress [nzPercent]="storagePercentage" [nzStrokeColor]="progressColor" [nzShowInfo]="false"></nz-progress>
     </div>
   </div>
 

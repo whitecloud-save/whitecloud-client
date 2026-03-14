@@ -71,13 +71,14 @@ import {SyncRemoteGameDialogComponent} from './dialog/sync-remote-game-dialog/sy
 import {VipBenefitDialogComponent} from './dialog/vip-benefit-dialog/vip-benefit-dialog.component';
 import {SyncCloudSaveDialogComponent} from './dialog/sync-cloud-save-dialog/sync-cloud-save-dialog.component';
 import {ConnectionIndicatorComponent} from './components/connection-indicator/connection-indicator.component';
-import {SaveTransferIndicatorComponent} from './components/save-transfer-indicator/save-transfer-indicator.component';
 import {GameActivityTimelineComponent} from './components/game-activity-timeline/game-activity-timeline.component';
 import {NzTimelineModule} from 'ng-zorro-antd/timeline';
 import {NzEmptyModule} from 'ng-zorro-antd/empty';
 import {NzTypographyModule} from 'ng-zorro-antd/typography';
 import {NzNotificationModule} from 'ng-zorro-antd/notification';
 import {FullUpdateDialogComponent} from './dialog/full-update-dialog/full-update-dialog.component';
+import {SaveTransferIndicatorComponent} from './components/save-transfer-indicator/save-transfer-indicator.component';
+import {NzPopoverModule} from 'ng-zorro-antd/popover';
 
 @NgModule({
   declarations: [
@@ -120,9 +121,9 @@ import {FullUpdateDialogComponent} from './dialog/full-update-dialog/full-update
     VipBenefitDialogComponent,
     SyncCloudSaveDialogComponent,
     ConnectionIndicatorComponent,
-    SaveTransferIndicatorComponent,
     GameActivityTimelineComponent,
     FullUpdateDialogComponent,
+    SaveTransferIndicatorComponent,
   ],
   imports: [
     CommonModule,
@@ -163,6 +164,7 @@ import {FullUpdateDialogComponent} from './dialog/full-update-dialog/full-update
     NzEmptyModule,
     NzTypographyModule,
     NzNotificationModule,
+    NzPopoverModule,
   ],
 })
 export class MainModule { }

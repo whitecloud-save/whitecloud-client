@@ -59,39 +59,6 @@ export interface IWorkerChannel {
   onMessage(callback: (data: any) => void): void;
 }
 
-class WeakValueMap<K, T extends Object> {
-  constructor() {
-    this.map_ = new Map();
-  }
-
-  set(key: K, value: T) {
-    // 将对象包装在 WeakRef 中
-    this.map_.set(key, new WeakRef(value));
-  }
-
-  get(key: K) {
-    const ref = this.map_.get(key);
-    if (!ref) return undefined;
-
-    const value = ref.deref();
-    if (value === undefined) {
-      this.map_.delete(key);
-      return undefined;
-    }
-    return value;
-  }
-
-  has(key: K) {
-    return this.get(key) !== undefined;
-  }
-
-  delete(key: K) {
-    return this.map_.delete(key);
-  }
-
-  private map_: Map<K, WeakRef<T>>;
-}
-
 export class Client {
   private waiter_: Waiter<any> = new Waiter<any>();
   private notifyPool_: Map<string, Subject<IRawReqPacket<unknown>>> = new Map();
@@ -100,7 +67,7 @@ export class Client {
   constructor(channel: IWorkerChannel) {
     this.channel_ = channel;
     this.callbackId_ = 0;
-    this.callbackMap_ = new WeakValueMap();
+    this.callbackMap_ = new Map();
 
     this.channel_.ready().then(() => {
       this.channel_.onMessage((message: Uint8Array) => {
@@ -113,8 +80,10 @@ export class Client {
       if (!callbackId)
         return;
       const callback = this.callbackMap_.get(callbackId);
-      if (!callback)
+      if (!callback) {
+        console.log('callback not found');
         return;
+      }
       callback(body.payload);
     });
 
@@ -171,7 +140,6 @@ export class Client {
         break;
       }
       case OPCode.NOTIFY: {
-        console.log(message);
         const subject = this.notifyPool_.get(message.method);
         subject?.next(message);
         break;
@@ -197,5 +165,5 @@ export class Client {
   }
 
   private callbackId_: number;
-  private callbackMap_: WeakValueMap<number, Function>;
+  private callbackMap_: Map<number, Function>;
 }

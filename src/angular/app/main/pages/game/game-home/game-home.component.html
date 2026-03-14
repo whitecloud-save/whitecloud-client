@@ -40,10 +40,10 @@
     <nz-divider nzOrientation="left" nzText="操作" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
 <div>
       <nz-space>
-        <button *nzSpaceItem nz-button (click)="backupSave()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">备份当前存档</button>
-        <button *nzSpaceItem nz-button (click)="game.openGameGuide()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开游戏攻略</button>
-        <button *nzSpaceItem nz-button (click)="game.openSavePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开存档目录</button>
-        <button *nzSpaceItem nz-button (click)="game.openGamePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running && (game.state | async) != GameState.SaveSizeExceeded">打开游戏目录</button>
+        <button *nzSpaceItem nz-button (click)="backupSave()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">备份当前存档</button>
+        <button *nzSpaceItem nz-button (click)="game.openGameGuide()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">打开游戏攻略</button>
+        <button *nzSpaceItem nz-button (click)="game.openSavePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">打开存档目录</button>
+        <button *nzSpaceItem nz-button (click)="game.openGamePath()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">打开游戏目录</button>
       </nz-space>
     </div>
     <nz-divider nzOrientation="left" nzText="动态" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>

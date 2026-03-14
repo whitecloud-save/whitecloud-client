@@ -5,6 +5,7 @@ import {v4} from 'uuid';
 import {OssService} from '../../../../service/oss.service';
 import {workerAPI} from '../../../../library/api/worker-api';
 import {mainAPI} from '../../../../library/api/main-api';
+import {VIPLevel} from 'app/service/server/api';
 
 @Component({
   selector: 'app-user-setting',
@@ -16,7 +17,6 @@ export class UserSettingComponent {
   storageUsed = 0n;
   storageMax = 0n;
   storagePercentage = 0;
-  storageRemaining = 0n;
 
   constructor(
     public userService: UserService,
@@ -27,6 +27,27 @@ export class UserSettingComponent {
     this.updateStorageInfo();
   }
 
+  get progressColor() {
+    if (this.storageMax >= this.storageUsed) {
+      return '#1890ff';
+    } else {
+      return '#ff4d4f';
+    }
+  }
+
+  get vipType() {
+    switch(this.userService.getVipLevel()) {
+      case VIPLevel.Advanced:
+        return '大容量会员';
+      case VIPLevel.Normal:
+        return '高级会员';
+      case VIPLevel.None:
+        return '普通会员';
+      default:
+        return '会员';
+    }
+  }
+
   updateStorageInfo() {
     this.userService.logged.subscribe((logged) => {
       if (logged) {
@@ -35,6 +56,7 @@ export class UserSettingComponent {
     });
 
     this.userService.storageUpdate.subscribe((notify) => {
+      console.log('storageUpdate', notify);
       if (notify) {
         this.fetchStorageInfo();
       }
@@ -44,8 +66,7 @@ export class UserSettingComponent {
   fetchStorageInfo() {
     this.storageUsed = this.userService.getStorageUsed();
     this.storageMax = this.userService.getStorageMax();
-    this.storagePercentage = parseInt((this.storageUsed * 10000n / this.storageMax).toString()) / 10000;
-    this.storageRemaining = this.storageMax - this.storageUsed;
+    this.storagePercentage = parseInt((this.storageUsed * 10000n / this.storageMax).toString()) / 100;
   }
 
   async changeAvatar() {

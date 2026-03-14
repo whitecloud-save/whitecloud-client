@@ -14,7 +14,6 @@ import {RemoteSave} from '../entity/remote-save';
 import {Save} from '../entity/save';
 import {GameActivityService} from './game-activity.service';
 import {ErrorHandlingUtil} from './error-handling-util';
-import {SaveTransferService} from './save-transfer.service';
 import {workerAPI} from '../library/api/worker-api';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 import {LocalGameDB} from '../../../shared/database/game';
@@ -43,7 +42,6 @@ export class GameService {
     private serverService: ServerService,
     private gameActivityService: GameActivityService,
     private errorHandlingUtil: ErrorHandlingUtil,
-    private saveTransferService: SaveTransferService,
   ) {
     this.serverService.notify<ClientNotifyHandler>().notifyGameUpdate().subscribe((update) => {
       const game = this.getGame(update.gameId);
@@ -212,7 +210,6 @@ export class GameService {
       this.ossService,
       this.gameActivityService,
       this.errorHandlingUtil,
-      this.saveTransferService
     );
     game.cloudSaveNum = remoteGame.cloudSaveNum;
     await game.save();
@@ -236,24 +233,12 @@ export class GameService {
 
   async downloadSave(save: RemoteSave | Save) {
     const game = save.game;
-    const saveTransferService = this.saveTransferService;
 
-    saveTransferService.startTransfer('download', save.id, game.id, save.remark);
-
-    const showNotification = setTimeout(() => {
-      saveTransferService.showProgressNotification(game.name, 'download');
-    }, 1000);
-
-    try {
-      if (save instanceof Save) {
-        await save.download();
-      } else {
-        const localSave = await save.download();
-        game.replaceRemoteSave(save, localSave);
-      }
-    } finally {
-      clearTimeout(showNotification);
-      saveTransferService.endTransfer();
+    if (save instanceof Save) {
+      await save.download();
+    } else {
+      const localSave = await save.download();
+      game.replaceRemoteSave(save, localSave);
     }
   }
 
@@ -273,14 +258,34 @@ export class GameService {
       coverImgUrl: params.coverImgUrl,
       order,
     });
-    const game = new Game(gameDB, this.processMonitorService, this.settingService, this, this.serverService, this.userService, this.ossService, this.gameActivityService, this.errorHandlingUtil, this.saveTransferService);
+    const game = new Game(
+      gameDB,
+      this.processMonitorService,
+      this.settingService,
+      this,
+      this.serverService,
+      this.userService,
+      this.ossService,
+      this.gameActivityService,
+      this.errorHandlingUtil
+    );
     await game.save();
     await game.zipSave();
     this.addGame(game);
   }
 
   addDBGame(gameDB: LocalGameDB) {
-    const game = new Game(gameDB, this.processMonitorService, this.settingService, this, this.serverService, this.userService, this.ossService, this.gameActivityService, this.errorHandlingUtil, this.saveTransferService);
+    const game = new Game(
+      gameDB,
+      this.processMonitorService,
+      this.settingService,
+      this,
+      this.serverService,
+      this.userService,
+      this.ossService,
+      this.gameActivityService,
+      this.errorHandlingUtil
+    );
     this.addGame(game);
   }
 

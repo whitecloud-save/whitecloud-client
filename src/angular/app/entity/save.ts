@@ -2,7 +2,6 @@ import {PathUtil} from '../library/path-util';
 import {Game} from './game';
 import {UnixTime} from '../library/utility';
 import {UserGameSave} from '../service/server/api';
-import axios from 'axios';
 import {SaveDB} from '../../../shared/database/save';
 import {workerAPI} from '../library/api/worker-api';
 
@@ -38,15 +37,7 @@ export class Save {
     if (!this.ossPath)
       return;
 
-    const res = await this.game_.serverService.business.signGameSaveUrl({url: this.ossPath});
-
-    // TODO
-    // await workerAPI.
-    // await axios.get(res.url, {responseType: 'arraybuffer'})
-    //   .then(async (response) => {
-    //     await mkdirp(this.game.backupSavePath);
-    //     await fs.promises.writeFile(this.filename, Buffer.from(response.data) as any);
-    //   });
+    await this.game.ossService.downloadGameSave(this);
     this.deleted_ = false;
   }
 
@@ -89,6 +80,7 @@ export class Save {
     if (this.deleted)
       return;
 
+    console.log('call extractZip');
     await workerAPI.zip.extractZip({
       zipFilePath: this.filename,
       targetPath:  this.game_.savePath,
@@ -102,7 +94,6 @@ export class Save {
     if (this.deleted)
       return;
     await workerAPI.fs.deleteFile(this.filename);
-    // await fs.promises.rm(this.filename);
     this.deleted_ = true;
   }
 

@@ -7,7 +7,7 @@
   </nz-form-item>
   <nz-form-item>
     <nz-form-label [nzSpan]="6" nzFor="LEExePath" nzTooltipTitle="设置 Locale Emulator 安装目录下的 LEProc.exe 文件路径">LEProc.exe</nz-form-label>
-    <nz-form-control [nzSpan]="16">
+    <nz-form-control [nzSpan]="16" [nzValidateStatus]="settingService.LEErrorString ? 'error': ''" [nzErrorTip]="settingService.LEErrorString">
       <div nz-flex nzAlign="center" style="width: 100%">
         <div style="flex: 1; margin-right: 5px;">
           <input nz-input formControlName="LEExePath"/>

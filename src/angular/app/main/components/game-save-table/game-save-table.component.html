@@ -40,11 +40,11 @@
           <td>
             <nz-button-group>
               @if(isLocal(data) && !data.onlyRemote) {
-                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="修改存档名称" (click)="editSave(data)">
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="修改存档名称" [disabled]="!data.available" (click)="editSave(data)">
                   <fa-icon [icon]="iconService.light.faPen"></fa-icon>
                 </button>
                 @if(!isStateCurrent(data)) {
-                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="回滚到该存档" [disabled]="data.deleted" (click)="rollbackSave(data)">
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="回滚到该存档" [disabled]="data.deleted || isTransferring" (click)="rollbackSave(data)">
                     <fa-icon [icon]="iconService.light.faRotateRight"></fa-icon>
                   </button>
                 }
@@ -57,20 +57,15 @@
                     <fa-icon [icon]="iconService.light.faUpload"></fa-icon>
                   </button>
                 }
-                @if(!isStateCurrent(data)) {
-                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" [disabled]="data.deleted" (click)="deleteSave(data)">
-                    <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
-                  </button>
-                }
               } @else {
                 <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="下载存档" [disabled]="isTransferring" (click)="downloadSave(data)">
                   <fa-icon [icon]="iconService.light.faDownload"></fa-icon>
                 </button>
-                @if(!isStateCurrent(data)) {
-                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" (click)="deleteRemoteSave(data)">
-                    <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
-                  </button>
-                }
+              }
+              @if(!isStateCurrent(data) && data.available) {
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" [disabled]="isTransferring" (click)="deleteSave(data)">
+                  <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
+                </button>
               }
             </nz-button-group>
           </td>
@@ -89,3 +84,21 @@
     被收藏的存档不会被自动清理
   </div>
 </ng-template>
+
+<nz-modal
+  [(nzVisible)]="isDeleteSaveSelectModalVisible"
+  nzTitle="删除存档"
+  (nzOnCancel)="isDeleteSaveSelectModalVisible = false"
+  [nzFooter]="modalFooter"
+>
+  <ng-container *nzModalContent>
+    <p>该存档在本地和云端均有备份。请选择您想要移除的备份。</p>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    @if (deletingSave) {
+      <button nz-button nzType="default" (click)="doDeleteRemoteSave(deletingSave)">删除云端备份</button>
+      <button nz-button nzType="default" (click)="doDeleteLocalSave(deletingSave)">删除本地备份</button>
+    }
+  </ng-template>
+</nz-modal>
