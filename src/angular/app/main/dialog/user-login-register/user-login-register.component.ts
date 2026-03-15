@@ -7,7 +7,6 @@ import {NzMessageService} from 'ng-zorro-antd/message';
 import {UserService} from '../../../service/user.service';
 import {DialogService} from '../../../service/dialog.service';
 import {Utility} from '../../../library/utility';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 
 @Component({
   selector: 'app-user-login-register',

@@ -1,4 +1,4 @@
-import {contextBridge, ipcRenderer} from 'electron';
+import {contextBridge, ipcRenderer, webUtils} from 'electron';
 
 let workerMessagePort: MessagePort | null = null;
 let workerProtReadyResolve: ((port: MessagePort) => void) | null = null;
@@ -68,4 +68,11 @@ contextBridge.exposeInMainWorld('mainChannel', {
       callback(event.data);
     };
   },
+});
+
+contextBridge.exposeInMainWorld('electron', {
+  getFilePath: (file: File) => {
+    // webUtils.getPathForFile 是专门用于解决隔离环境下获取路径的工具
+    return webUtils.getPathForFile(file);
+  }
 })

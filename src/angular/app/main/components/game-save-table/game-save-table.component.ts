@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, ErrorHandler, Input, NgZone, OnDestroy, ViewChild} from '@angular/core';
 import {Save, SaveState} from '../../../entity/save';
 import {Game} from '../../../entity/game';
 import {Utility} from '../../../library/utility';
@@ -11,7 +11,6 @@ import {DialogService} from '../../../service/dialog.service';
 import {RemoteSave} from '../../../entity/remote-save';
 import {GameService} from '../../../service/game.service';
 import {UserService} from '../../../service/user.service';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 import {SaveTransferService} from '../../../service/save-transfer.service';
 
 @Component({
@@ -48,7 +47,7 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
     private message: NzMessageService,
     private dialogService: DialogService,
     private gameService: GameService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
     private saveTransferService: SaveTransferService,
     private zone: NgZone,
   ) {}
@@ -97,7 +96,7 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
     save.star()
       .then(() => save.save(true))
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '收藏存档失败');
+        this.errorHandler.handleError(err);
       });
   }
 
@@ -112,7 +111,7 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
             this.message.success('回滚成功');
           })
           .catch((err) => {
-            this.errorHandlingUtil.handleManualError(err, '回滚存档失败');
+            this.errorHandler.handleError(err);
           });
       },
     });
@@ -138,7 +137,8 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
         this.message.success('删除成功');
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '删除存档失败');
+        this.errorHandler.handleError(err);
+        // this.errorHandlingUtil.handleManualError(err, '删除存档失败');
       });
   }
 
@@ -189,7 +189,8 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
         this.message.success('删除成功');
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '删除云端存档失败');
+        this.errorHandler.handleError(err);
+        // this.errorHandlingUtil.handleManualError(err, '删除云端存档失败');
       });
   }
 

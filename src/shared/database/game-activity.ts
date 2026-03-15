@@ -9,7 +9,7 @@ export interface GameActivityData {
   [key: string]: any;
 }
 
-export interface SaveUploadFailedData extends GameActivityData {
+export interface SaveFailedData extends GameActivityData {
   reason: string;
 }
 

@@ -27,8 +27,9 @@ export const GuideGameId = Symbol('guid-game-id');
         .catch(err => console.error(err));
       break;
     case 'guide':
+      const data = value.data as {gameId: string};
       platformBrowserDynamic(
-        [{provide: GuideGameId, useValue: value.data}]
+        [{provide: GuideGameId, useValue: data.gameId}]
       )
         .bootstrapModule(GameGuideModule, {
           preserveWhitespaces: false,

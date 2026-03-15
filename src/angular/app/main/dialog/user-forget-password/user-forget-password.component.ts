@@ -1,11 +1,10 @@
-import {Component, inject} from '@angular/core';
+import {Component, ErrorHandler, inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {ServerService} from '../../../service/server/server.service';
 import {IReqForgetPassword} from '../../../service/server/api';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalRef} from 'ng-zorro-antd/modal';
 import {DialogService} from '../../../service/dialog.service';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 import { Utility } from '../../../library/utility';
 
 @Component({
@@ -29,7 +28,7 @@ export class UserForgetPasswordComponent {
     private server: ServerService,
     private message: NzMessageService,
     private dialogService: DialogService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
   ) {
     this.forgetPasswordForm = new FormGroup({
       email: new FormControl('', [Validators.email, Validators.required]) as FormControl<string>,
@@ -55,7 +54,7 @@ export class UserForgetPasswordComponent {
         this.forgetPasswordForm.controls.email.disable();
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '请求验证码失败');
+        this.errorHandler.handleError(err);
       })
       .finally(() => {
         this.requestForgetPasswordLoading = false;
@@ -66,7 +65,7 @@ export class UserForgetPasswordComponent {
     if (this.forgetPasswordForm.invalid)
       return;
     if (!this.id)
-      return;    
+      return;
     this.server.auth.forgetPassword({
       id: this.id,
       ...this.forgetPasswordForm.value,
@@ -78,7 +77,7 @@ export class UserForgetPasswordComponent {
         this.dialogService.openUserLoginRegisterDialog('login');
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '密码重置失败');
+        this.errorHandler.handleError(err);
       });
   }
 }

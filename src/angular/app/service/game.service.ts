@@ -13,7 +13,6 @@ import {RemoteGame} from '../entity/remote-game';
 import {RemoteSave} from '../entity/remote-save';
 import {Save} from '../entity/save';
 import {GameActivityService} from './game-activity.service';
-import {ErrorHandlingUtil} from './error-handling-util';
 import {workerAPI} from '../library/api/worker-api';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 import {LocalGameDB} from '../../../shared/database/game';
@@ -41,7 +40,6 @@ export class GameService {
     private ossService: OssService,
     private serverService: ServerService,
     private gameActivityService: GameActivityService,
-    private errorHandlingUtil: ErrorHandlingUtil,
   ) {
     this.serverService.notify<ClientNotifyHandler>().notifyGameUpdate().subscribe((update) => {
       const game = this.getGame(update.gameId);
@@ -209,7 +207,6 @@ export class GameService {
       this.userService,
       this.ossService,
       this.gameActivityService,
-      this.errorHandlingUtil,
     );
     game.cloudSaveNum = remoteGame.cloudSaveNum;
     await game.save();
@@ -267,7 +264,6 @@ export class GameService {
       this.userService,
       this.ossService,
       this.gameActivityService,
-      this.errorHandlingUtil
     );
     await game.save();
     await game.zipSave();
@@ -284,7 +280,6 @@ export class GameService {
       this.userService,
       this.ossService,
       this.gameActivityService,
-      this.errorHandlingUtil
     );
     this.addGame(game);
   }

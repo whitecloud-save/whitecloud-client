@@ -7,7 +7,6 @@ import {interval, switchMap} from 'rxjs';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {NodeTime, UnixTime, Utility} from '../library/utility';
-import {ErrorHandlingUtil} from './error-handling-util';
 import { BaseError } from '../library/error/BaseError';
 
 export interface IStorageInfo {
@@ -41,7 +40,6 @@ export class UserService {
     private token: TokenService,
     private message: NzMessageService,
     private modal: NzModalService,
-    private errorHandlingUtil: ErrorHandlingUtil,
   ) {
     server.$state.subscribe((state) => {
       switch(state) {

@@ -1,4 +1,4 @@
-import {Component, Input, NgZone} from '@angular/core';
+import {Component, ErrorHandler, Input, NgZone} from '@angular/core';
 import {Game} from '../../../entity/game';
 import {GameService} from '../../../service/game.service';
 import {NzModalService} from 'ng-zorro-antd/modal';
@@ -6,7 +6,6 @@ import {Router} from '@angular/router';
 import {RemoteGame} from '../../../entity/remote-game';
 import {DialogService} from '../../../service/dialog.service';
 import {NzMessageService} from 'ng-zorro-antd/message';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 import {UserService} from '../../../service/user.service';
 import {RemoteSave} from '../../../entity/remote-save';
 import {Save} from '../../../entity/save';
@@ -29,7 +28,7 @@ export class GameCoverComponent {
     private router: Router,
     private dialog: DialogService,
     private message: NzMessageService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
   ) {}
 
   navigate() {
@@ -127,7 +126,7 @@ export class GameCoverComponent {
                       this.message.success('移除成功');
                     })
                     .catch((err) => {
-                      this.errorHandlingUtil.handleManualError(err, '从云端移除游戏失败');
+                      this.errorHandler.handleError(err);
                     });
                 },
               });

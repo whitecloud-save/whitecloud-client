@@ -15,7 +15,6 @@ import {GameGuideDB} from './database/game-guide.js';
 import {GameActivityDB} from './database/game-activity.js';
 import {OssHandler} from './handler/worker-handler/oss-handler.js';
 
-let currentListener: ElectronMessageListener | null = null;
 let dataSource: DataSource | null = null;
 
 const MessageRoute = {
@@ -48,15 +47,7 @@ process.parentPort.on('message', async (event) => {
       await dataSource.initialize();
     }
 
-    if (currentListener) {
-      try {
-        await currentListener.close();
-      } catch (err) {
-        console.error('Failed to shutdown old listener:', err);
-      }
-    }
-
-    currentListener = new ElectronMessageListener(
+    const listener = new ElectronMessageListener(
       event.ports[0],
       MessageRoute.callback({
         fs: new FsHandler(),
@@ -69,6 +60,6 @@ process.parentPort.on('message', async (event) => {
         oss: new OssHandler(),
       })
     );
-    await currentListener.startListen();
+    await listener.startListen();
   }
 });

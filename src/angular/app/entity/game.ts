@@ -15,7 +15,6 @@ import {UserService} from '../service/user.service';
 import {OssService} from '../service/oss.service';
 import {RemoteSave} from './remote-save';
 import {GameActivityService} from '../service/game-activity.service';
-import {ErrorHandlingUtil} from '../service/error-handling-util';
 import {workerAPI} from '../library/api/worker-api';
 import {LocalGameDB} from '../../../shared/database/game';
 import {GameHistoryDB} from '../../../shared/database/game-history';
@@ -44,7 +43,6 @@ export class Game {
     userService: UserService,
     ossService: OssService,
     gameActivityService: GameActivityService,
-    private errorHandlingUtil: ErrorHandlingUtil,
   ) {
     this.db_ = db;
     this.coverImage_ = new CacheImage(db.coverImgUrl, serverService);
@@ -155,7 +153,7 @@ export class Game {
           if (!this.runningProcess_.size) {
             this.onGameProcessExit().catch(err => {
               this.onError(err);
-              this.errorHandlingUtil.handleAutoError(err, `存档备份失败`);
+              // this.errorHandlingUtil.handleAutoError(err, `存档备份失败`);
             });
           }
           break;
@@ -215,8 +213,7 @@ export class Game {
     });
 
     if (this.db_.autoOpenGuide) {
-      // TODO
-      // await ipcRenderer.invoke('closeGameGuideWindow', this.guideWindowId_);
+      await mainAPI.window.closeGameGuideWindow(this.guideWindowId_);
     }
   }
 
@@ -228,12 +225,11 @@ export class Game {
   }
 
   async openGameGuide() {
-    // TODO
-    // const id = await ipcRenderer.invoke('createGameGuideWindow', {
-    //   uuid: this.id,
-    //   title: `${this.name} 攻略`,
-    // });
-    // this.guideWindowId_ = id;
+    const id = await mainAPI.window.createGameGuideWindow({
+      gameId: this.id,
+      title: `${this.name} 攻略`,
+    });
+    this.guideWindowId_ = id;
   }
 
   getLatestCloudSave(): RemoteSave | Save | null {
@@ -427,8 +423,9 @@ export class Game {
 
       this.activityUpdate$.next(this.id);
     } catch (err) {
+      console.log(err);
       this.onError(err as BaseError);
-      await this.gameActivityService_.createActivity(this.id, GameActivityType.SAVE_BACKUP_LOCAL_FAILED, {reason: (err as BaseError).code});
+      await this.gameActivityService_.createActivity(this.id, GameActivityType.SAVE_BACKUP_LOCAL_FAILED, {reason: (err as BaseError).code || (err as Error).message});
     }
     this.checkState();
   }

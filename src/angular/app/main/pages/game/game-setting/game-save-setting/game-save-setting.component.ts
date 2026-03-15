@@ -1,16 +1,13 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, ErrorHandler, Input, OnInit} from '@angular/core';
 import {Game} from '../../../../../entity/game';
-import {RemoteSave} from '../../../../../entity/remote-save';
 import {FormControl, FormGroup} from '@angular/forms';
 import {debounceTime} from 'rxjs/operators';
 import {IconService} from '../../../../../service/icon.service';
 import {UserService} from '../../../../../service/user.service';
-import {SaveState} from '../../../../../entity/save';
 import {SettingService} from '../../../../../service/setting.service';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {GameService} from '../../../../../service/game.service';
-import {ErrorHandlingUtil} from '../../../../../service/error-handling-util';
 
 @Component({
   selector: 'app-game-save-setting',
@@ -31,7 +28,7 @@ export class GameSaveSettingComponent implements OnInit {
     private modal: NzModalService,
     private message: NzMessageService,
     private gameService: GameService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
   ) {}
 
   ngOnInit() {
@@ -79,7 +76,6 @@ export class GameSaveSettingComponent implements OnInit {
     });
 
     this.serverForm.controls.enableCloudSave.valueChanges.subscribe((value) => {
-      console.log(value);
       if (value) {
         this.serverForm.controls.cloudSaveNum.enable();
       } else {
@@ -115,7 +111,7 @@ export class GameSaveSettingComponent implements OnInit {
             this.message.success('清空成功');
           })
           .catch((err) => {
-            this.errorHandlingUtil.handleManualError(err, '清空云存档失败');
+            this.errorHandler.handleError(err);
           });
       },
     });

@@ -1,10 +1,9 @@
-import {Component, inject} from '@angular/core';
+import {Component, ErrorHandler, inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {UserService} from '../../../service/user.service';
 import {ServerService} from '../../../service/server/server.service';
 import {NzModalRef} from 'ng-zorro-antd/modal';
 import {NzMessageService} from 'ng-zorro-antd/message';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 
 @Component({
   selector: 'app-user-modify-nickname',
@@ -22,7 +21,7 @@ export class UserModifyNicknameComponent {
     public userService: UserService,
     public server: ServerService,
     public messageService: NzMessageService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
   ) {
     this.nicknameForm = new FormGroup({
       nickname: new FormControl(userService.userInfo?.nickname, [Validators.minLength(1), Validators.maxLength(10), Validators.required]) as FormControl<string>,
@@ -42,7 +41,8 @@ export class UserModifyNicknameComponent {
         this.ref.close();
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '昵称修改失败');
+        this.errorHandler.handleError(err);
+        // this.errorHandlingUtil.handleManualError(err, '昵称修改失败');
       });
   }
 }

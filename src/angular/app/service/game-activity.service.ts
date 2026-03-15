@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {ErrorString} from '../library/error/ErrorString';
 import {NodeTime, UnixTime} from '../library/utility';
 import {UserErrorCode} from './server/api';
-import {GameActivityData, GameActivityDB, GameActivityType, SaveUploadFailedData} from '../../../shared/database/game-activity';
+import {GameActivityData, GameActivityDB, GameActivityType, SaveFailedData} from '../../../shared/database/game-activity';
 import {workerAPI} from '../library/api/worker-api';
 import {GameHistoryDB} from '../../../shared/database/game-history';
 
@@ -64,7 +64,7 @@ export class GameActivityService {
   }
 
   async saveUploadFailed(gameId: string, reason: string, offset = 0): Promise<GameActivityDB> {
-    const data: SaveUploadFailedData = {reason};
+    const data: SaveFailedData = {reason};
     return await this.createActivity(gameId, GameActivityType.SAVE_UPLOAD_FAILED, data, offset);
   }
 
@@ -114,11 +114,14 @@ export class GameActivityService {
         return '存档已备份';
       case GameActivityType.SAVE_BACKUP_CLOUD:
         return '存档已备份，并上传至云储存';
-      case GameActivityType.SAVE_UPLOAD_FAILED:
-        const failedData = data as SaveUploadFailedData;
+      case GameActivityType.SAVE_UPLOAD_FAILED: {
+        const failedData = data as SaveFailedData;
         return `存档上传失败：${ErrorString[failedData.reason] || failedData.reason}`;
-      case GameActivityType.SAVE_BACKUP_LOCAL_FAILED:
-        return '存档备份失败';
+      }
+      case GameActivityType.SAVE_BACKUP_LOCAL_FAILED: {
+        const failedData = data as SaveFailedData;
+        return `存档备份失败: ${ErrorString[failedData.reason] || failedData.reason}`;
+      }
       default:
         return '';
     }

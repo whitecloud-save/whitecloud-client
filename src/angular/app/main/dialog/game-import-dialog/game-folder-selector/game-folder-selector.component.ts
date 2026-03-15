@@ -2,6 +2,13 @@ import {Component, EventEmitter, Output} from '@angular/core';
 import {IconService} from '../../../../service/icon.service';
 import {mainAPI} from '../../../../library/api/main-api';
 
+declare const window: ElectronWindow;
+export interface ElectronWindow {
+  electron: {
+    getFilePath(file: File): string,
+  };
+}
+
 @Component({
   selector: 'app-game-folder-selector',
   templateUrl: './game-folder-selector.component.html',
@@ -31,10 +38,10 @@ export class GameFolderSelectorComponent {
   async onFileDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    // TODO
-    // if (event.dataTransfer?.files.length) {
-    //   const file = event.dataTransfer.files[0];
-    //   this.open.emit(file.path);
-    // }
+    if (event.dataTransfer?.files.length) {
+      const file = event.dataTransfer.files[0];
+      const fullPath = window.electron.getFilePath(file);
+      this.open.emit(fullPath);
+    }
   }
 }

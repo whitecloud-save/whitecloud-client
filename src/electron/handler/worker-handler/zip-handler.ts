@@ -6,72 +6,75 @@ import * as fflate from 'fflate';
 
 export class ZipHandler extends Route {
   @Route.method
-  async createZipFromDirectory(args: { dirPath: string; zipPath: string }) {
-    const { dirPath, zipPath } = args;
+  async createZipFromDirectory(args: {dirPath: string; zipPath: string}) {
+    const {dirPath, zipPath} = args;
 
     await mkdirp(path.dirname(zipPath));
     const outputStream = fs.createWriteStream(zipPath);
+    const finalPromise = new Promise<void>((resolve, reject) => {
+      outputStream.on('close', resolve);
+      outputStream.on('error', reject);
+    });
+
+    console.log(zipPath);
 
     const zip = new fflate.Zip();
-
-    zip.ondata = (err, data, final) => {
+    zip.ondata = (err, chunk, final) => {
+      // console.log('zip ondata, final', final);
       if (err) {
-        outputStream.destroy(err);
-        return;
+        outputStream.destroy();
+        throw err;
       }
-      outputStream.write(data);
+      outputStream.write(Buffer.from(chunk));
       if (final) {
         outputStream.end();
       }
     };
 
-    const addDirectoryToZip = async (currentPath: string, relativeDir: string) => {
-      const entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dirPath, {withFileTypes: true, recursive: true});
+    for (const entry of entries) {
+      const fullPath = path.join(entry.parentPath, entry.name);
+      const zipEntryPath = path.relative(dirPath, fullPath);
 
-      for (const entry of entries) {
-        const fullPath = path.join(currentPath, entry.name);
-        const zipEntryPath = path.join(relativeDir, entry.name);
+      if (entry.isFile()) {
+        console.log(zipEntryPath);
+        // const readStream = fs.createReadStream(fullPath);
+        // const zipContent = new fflate.ZipDeflate(zipEntryPath, {level: 9});
+        // zip.add(zipContent);
 
-        if (entry.isDirectory()) {
-          const folder = new fflate.ZipPassThrough(zipEntryPath + '/');
-          zip.add(folder);
-          folder.push(new Uint8Array(0), true);
+        // readStream.on('data', (chunk) => {
+        //   zipContent.push(chunk as Buffer);
+        // });
 
-          await addDirectoryToZip(fullPath, zipEntryPath);
-        } else {
-          const zipFile = new fflate.ZipDeflate(zipEntryPath);
-          zip.add(zipFile);
+        // await new Promise<void>((resolve, reject) => {
+        //   readStream.on('end', resolve);
+        //   readStream.on('error', reject);
+        // });
 
-          const readStream = fs.createReadStream(fullPath);
+        const zipFile = new fflate.ZipPassThrough(zipEntryPath);
+        zip.add(zipFile);
 
-          await new Promise<void>((resolve, reject) => {
-            readStream.on('data', (chunk) => {
-              zipFile.push(new Uint8Array(chunk as Buffer));
-            });
-
-            readStream.on('end', () => {
-              zipFile.push(new Uint8Array(0), true);
-              resolve();
-            });
-
-            readStream.on('error', (err) => {
-              readStream.destroy();
-              reject(err);
-            });
+        // 使用传统的 ReadStream 配合 on('data')
+        // 这是最底层的对接方式，避开 pipeline 可能存在的兼容性问题
+        await new Promise<void>((resolve, reject) => {
+          const fileStream = fs.createReadStream(fullPath);
+          fileStream.on('data', (chunk) => zipFile.push(chunk as Buffer));
+          fileStream.on('end', () => {
+            zipFile.push(new Uint8Array(0), true); // 标记该文件结束
+            resolve();
           });
-        }
+          fileStream.on('error', reject);
+        });
       }
-    };
+    }
 
-    await addDirectoryToZip(dirPath, '');
-
+    console.log('zip end');
     zip.end();
 
-    await new Promise<void>((resolve, reject) => {
-      outputStream.on('finish', resolve);
-      outputStream.on('error', reject);
-    });
 
+    await finalPromise;
+
+    console.log('stat');
     const stat = await fs.promises.stat(zipPath);
     return {
       zipSize: stat.size,
@@ -80,12 +83,13 @@ export class ZipHandler extends Route {
 
   @Route.method
   async extractZip(args: { zipFilePath: string; targetPath: string }) {
-    const { zipFilePath, targetPath } = args;
+    const {zipFilePath, targetPath} = args;
 
     await fs.promises.rm(targetPath, { recursive: true, force: true });
     await mkdirp(targetPath);
 
     const unzipper = new fflate.Unzip();
+    unzipper.register(fflate.UnzipInflate);
 
     const fileWritePromises: Promise<unknown>[] = [];
 
@@ -110,7 +114,6 @@ export class ZipHandler extends Route {
         };
 
         const promise = (async () => {
-
           await new Promise<void>((resolve, reject) => {
             writeStream.on('finish', resolve);
             writeStream.on('error', reject);

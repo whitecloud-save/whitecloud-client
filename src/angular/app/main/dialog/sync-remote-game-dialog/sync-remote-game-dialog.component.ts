@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, ErrorHandler, inject} from '@angular/core';
 import {NZ_MODAL_DATA, NzModalRef} from 'ng-zorro-antd/modal';
 import {RemoteGame} from '../../../entity/remote-game';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -6,7 +6,6 @@ import {IconService} from '../../../service/icon.service';
 import {PathUtil} from '../../../library/path-util';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {GameService} from '../../../service/game.service';
-import {ErrorHandlingUtil} from '../../../service/error-handling-util';
 import {mainAPI} from '../../../library/api/main-api';
 
 @Component({
@@ -28,7 +27,7 @@ export class SyncRemoteGameDialogComponent {
     public iconService: IconService,
     public message: NzMessageService,
     private gameService: GameService,
-    private errorHandlingUtil: ErrorHandlingUtil,
+    private errorHandler: ErrorHandler,
   ) {
     this.gameForm = new FormGroup({
       exePath: new FormControl('', [Validators.required]) as FormControl<string>,
@@ -95,7 +94,7 @@ export class SyncRemoteGameDialogComponent {
         this.ref.close();
       })
       .catch((err) => {
-        this.errorHandlingUtil.handleManualError(err, '同步游戏失败');
+        this.errorHandler.handleError(err);
       });
   }
 }

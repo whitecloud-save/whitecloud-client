@@ -49,6 +49,23 @@
               <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
             </div>
           </div>
+
+          <div *ngSwitchCase="'SAVE_BACKUP_LOCAL_FAILED'" class="timeline-item">
+            <div class="timeline-item-tail"></div>
+            <div class="timeline-item-head red">
+              <fa-icon [icon]="iconService.solid.faCircleExclamation"></fa-icon>
+            </div>
+            <div class="timeline-item-content">
+              <div class="activity-content">
+                {{ activity.content }}
+              </div>
+              <div class="activity-time">{{formatDate(activity.createdAt)}}</div>
+            </div>
+          </div>
+
+          <div *ngSwitchDefault class="timeline-item">
+            {{activity.type}}
+          </div>
         </ng-container>
       </ng-container>
 

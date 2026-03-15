@@ -121,7 +121,7 @@ export class Client {
               'rpc-id': waiter.id,
               'callback-id': callbackId,
             },
-            payload: body || {},
+            payload: body === undefined ? {} : body,
           };
           this.channel_.postMessage(pack(packet));
           return waiter.promise;
