@@ -16,11 +16,8 @@ export class ZipHandler extends Route {
       outputStream.on('error', reject);
     });
 
-    console.log(zipPath);
-
     const zip = new fflate.Zip();
     zip.ondata = (err, chunk, final) => {
-      // console.log('zip ondata, final', final);
       if (err) {
         outputStream.destroy();
         throw err;
@@ -37,25 +34,9 @@ export class ZipHandler extends Route {
       const zipEntryPath = path.relative(dirPath, fullPath);
 
       if (entry.isFile()) {
-        console.log(zipEntryPath);
-        // const readStream = fs.createReadStream(fullPath);
-        // const zipContent = new fflate.ZipDeflate(zipEntryPath, {level: 9});
-        // zip.add(zipContent);
-
-        // readStream.on('data', (chunk) => {
-        //   zipContent.push(chunk as Buffer);
-        // });
-
-        // await new Promise<void>((resolve, reject) => {
-        //   readStream.on('end', resolve);
-        //   readStream.on('error', reject);
-        // });
-
         const zipFile = new fflate.ZipPassThrough(zipEntryPath);
         zip.add(zipFile);
 
-        // 使用传统的 ReadStream 配合 on('data')
-        // 这是最底层的对接方式，避开 pipeline 可能存在的兼容性问题
         await new Promise<void>((resolve, reject) => {
           const fileStream = fs.createReadStream(fullPath);
           fileStream.on('data', (chunk) => zipFile.push(chunk as Buffer));
@@ -68,13 +49,8 @@ export class ZipHandler extends Route {
       }
     }
 
-    console.log('zip end');
     zip.end();
-
-
     await finalPromise;
-
-    console.log('stat');
     const stat = await fs.promises.stat(zipPath);
     return {
       zipSize: stat.size,

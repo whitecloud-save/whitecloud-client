@@ -138,7 +138,7 @@ export class GameService {
 
     const localRemoteGame = this.remoteGames.getValue();
     for (const game of localRemoteGame) {
-      if (!list.find(data => data.gameId === game.id))
+      if (!list.find(data => data.gameId === game.id && !data.deleted))
         this.removeRemoteGame(game);
     }
 
@@ -211,7 +211,7 @@ export class GameService {
     game.cloudSaveNum = remoteGame.cloudSaveNum;
     await game.save();
     this.addGame(game);
-    await game.zipSave();
+    // await game.zipSave();
     await game.updateCurrentSave();
 
     this.removeRemoteGame(remoteGame);
@@ -266,7 +266,7 @@ export class GameService {
       this.gameActivityService,
     );
     await game.save();
-    await game.zipSave();
+    // await game.zipSave();
     this.addGame(game);
   }
 

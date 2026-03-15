@@ -69,7 +69,7 @@ export class VipBenefitDialogComponent implements OnInit {
         break;
       case VIPLevel.Normal:
       case VIPLevel.Advanced:
-        this.selectedSku = this.currentSkuList[0];
+        this.selectedSku = this.currentSkuList[this.currentSkuList.length - 1];
         break;
     }
   }

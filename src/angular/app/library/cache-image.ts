@@ -77,7 +77,7 @@ export class CacheImage {
             await axios.get(res.url, {responseType: 'arraybuffer'})
               .then(async (response) => {
                 await workerAPI.fs.mkdir({path: PathUtil.dirname(this.filePath), options: {recursive: true}});
-                await workerAPI.fs.writeFile({path: this.filePath, data: Buffer.from(response.data)});
+                await workerAPI.fs.writeFile({path: this.filePath, data: response.data});
                 resolve();
               }).catch(e => reject(e));
             break;
@@ -86,7 +86,7 @@ export class CacheImage {
             await axios.get(this.url_, {responseType: 'arraybuffer'})
               .then(async (response) => {
                 await workerAPI.fs.mkdir({path: PathUtil.dirname(this.filePath), options: {recursive: true}});
-                await workerAPI.fs.writeFile({path: this.filePath, data: Buffer.from(response.data)});
+                await workerAPI.fs.writeFile({path: this.filePath, data: response.data});
                 resolve();
               }).catch(e => reject(e));
             break;

@@ -9,8 +9,6 @@ export class CryptoHandler extends Route {
   async calculateFileHash(filePath: string): Promise<string> {
     const hash = crypto.createHash('sha1');
     const input = fs.createReadStream(filePath);
-
-    // 使用 pipeline 可以自动处理流的关闭和错误捕获
     await pipeline(input, hash);
 
     return hash.digest('hex').substring(0, 10);
@@ -22,8 +20,10 @@ export class CryptoHandler extends Route {
 
     for (const file of files) {
       const filePath = path.join(dirPath, file);
-      const content = await fs.promises.readFile(filePath);
-      hash.update(file).update(content);
+      hash.update(file);
+
+      const fileHash = await this.calculateFileHash(filePath);
+      hash.update(fileHash);
     }
 
     return hash.digest('hex').substring(0, 10);

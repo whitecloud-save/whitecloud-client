@@ -20,27 +20,6 @@
       </nz-row>
     </nz-form-control>
   </nz-form-item>
-  <nz-form-item>
-    <nz-form-label nzTooltipTitle="开启后使用游戏设置的备份上限，关闭时使用全局设置（当前：{{settingService.globalSaveBackupLimit}}MB）" [nzSpan]="6" nzFor="useCustomSaveBackupLimit">
-      自定义备份上限
-    </nz-form-label>
-    <nz-form-control [nzSpan]="16">
-      <label nz-checkbox formControlName="useCustomSaveBackupLimit"></label>
-    </nz-form-control>
-  </nz-form-item>
-  <nz-form-item>
-    <nz-form-label [nzSpan]="6" nzFor="saveBackupLimit">备份上限</nz-form-label>
-    <nz-form-control [nzSpan]="16">
-      <nz-row>
-        <nz-col nzSpan="12">
-          <nz-slider nzTooltipVisible="never" [nzMin]="10" [nzMax]="100" [nzStep]="10" formControlName="saveBackupLimit"></nz-slider>
-        </nz-col>
-        <div nz-col nzSpan="4" style="margin-left: 8px; position: relative; top: 5px">
-          {{saveForm.value.saveBackupLimit}}MB
-        </div>
-      </nz-row>
-    </nz-form-control>
-  </nz-form-item>
 </form>
 
 @if(userService.logged | async) {

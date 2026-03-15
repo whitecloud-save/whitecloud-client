@@ -13,7 +13,6 @@ export class SettingService {
 
   public useLE: boolean;
   public LEExePath: string;
-  public globalSaveBackupLimit: number;
   public LEError?: Error;
 
   public LEProfileSelections: BehaviorSubject<{label: string; value: string}[]>;
@@ -35,7 +34,6 @@ export class SettingService {
   constructor() {
     this.useLE = false;
     this.LEExePath = '';
-    this.globalSaveBackupLimit = 100;
 
     this.LEProfileSelections = new BehaviorSubject([] as {label: string; value: string}[]);
   }
@@ -44,7 +42,6 @@ export class SettingService {
     const setting = JSON.parse(localStorage.getItem('app:setting') || '{}');
     this.useLE = setting.useLE || false;
     this.LEExePath = setting.LEExePath || '';
-    this.globalSaveBackupLimit = setting.globalSaveBackupLimit ?? 100;
     await this.updateLEProfile();
   }
 
@@ -52,7 +49,6 @@ export class SettingService {
     localStorage.setItem('app:setting', JSON.stringify({
       useLE: this.useLE,
       LEExePath: this.LEExePath,
-      globalSaveBackupLimit: this.globalSaveBackupLimit,
     }));
 
     this.updateLEProfile();

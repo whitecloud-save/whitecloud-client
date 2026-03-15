@@ -33,7 +33,12 @@
         </div>
         <div class="game-brief-status" *nzSpaceItem>
           <span class="game-brief-status-title">最新存档时间</span><br/>
-          <span class="game-brief-status-value" *ngIf="game.lastSave">{{game.lastSave.createTime * 1000 | date: 'YYYY/MM/dd HH:mm:ss'}}</span>
+          <span class="game-brief-status-value" *ngIf="game.lastSave">
+            {{game.lastSave.createTime * 1000 | date: 'YYYY/MM/dd HH:mm:ss'}}
+          </span>
+          <span class="game-brief-status-value" *ngIf="!game.lastSave">
+            尚未备份
+          </span>
         </div>
       </nz-space>
     </div>

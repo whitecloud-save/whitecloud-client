@@ -19,10 +19,8 @@ export class BasicSettingComponent {
   UpdateState = UpdateState;
 
   openWithSystem = new FormControl();
-  // globalSaveBackupLimit = new FormControl(100);
   basicForm = new FormGroup({
     openWithSystem: this.openWithSystem,
-    // globalSaveBackupLimit: this.globalSaveBackupLimit,
   });
 
   constructor(
@@ -42,21 +40,11 @@ export class BasicSettingComponent {
           openAtLogin: value,
         });
       });
-
-      // this.globalSaveBackupLimit.setValue(this.settingService.globalSaveBackupLimit);
-      // this.globalSaveBackupLimit.valueChanges.subscribe((value) => {
-      //   if (value === null)
-      //     return;
-      //   this.settingService.globalSaveBackupLimit = value;
-      //   this.settingService.save();
-      // });
     });
 
     mainAPI.app.getVersion().then(res => {
       this.version = res;
     });
-
-    // this.version = app.getVersion();
   }
 
   async checkForUpdates() {

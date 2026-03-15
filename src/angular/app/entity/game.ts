@@ -92,18 +92,10 @@ export class Game {
 
     const historyList = await workerAPI.db.findGameHistory(this.id);
     this.history_ = historyList;
+    await this.checkIcon();
     await this.updateCurrentSave();
     await this.checkState();
   }
-
-  // async syncLastSave() {
-  //   const lastSave = this.saves_.filter(save => save.available).sort((a, b) => b.createTime - a.createTime)[0];
-  //   if (lastSave instanceof RemoteSave) {
-  //     const save = await lastSave.download();
-  //     this.replaceRemoteSave(lastSave, save);
-  //     save.rollback();
-  //   }
-  // }
 
   async rollbackRemoteSave(save: RemoteSave | Save) {
     const newSave = await save.download();
@@ -129,7 +121,6 @@ export class Game {
           this.addSave(remoteSave);
         }
       }
-      // this.syncLastSave();
     }
   }
 
@@ -153,7 +144,6 @@ export class Game {
           if (!this.runningProcess_.size) {
             this.onGameProcessExit().catch(err => {
               this.onError(err);
-              // this.errorHandlingUtil.handleAutoError(err, `存档备份失败`);
             });
           }
           break;
@@ -430,6 +420,18 @@ export class Game {
     this.checkState();
   }
 
+  async checkIcon() {
+    const iconPath = PathUtil.join(this.backupSavePath, 'icon.png');
+    const exists = await workerAPI.fs.exists(iconPath);
+    if (exists) {
+      console.log('read icon');
+      const iconData = await workerAPI.fs.readFile(iconPath);
+      this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
+    } else {
+      await this.loadIcon();
+    }
+  }
+
   async checkState() {
     if (!await workerAPI.fs.exists(this.savePath)) {
       this.onError(new BaseError(ErrorCode.ERR_GAME_SAVE_PATH_NOT_FOUND));
@@ -446,23 +448,10 @@ export class Game {
       return;
     }
 
-    const iconPath = PathUtil.join(this.backupSavePath, 'icon.png');
-    if (await workerAPI.fs.exists(iconPath)) {
-      const iconData = await workerAPI.fs.readFile(iconPath);
-      this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
-    } else {
-      await this.loadIcon();
-    }
-
     if (this.runningProcess_.size) {
       this.setState(GameState.Running);
       return;
     }
-
-    // if (await this.checkSaveSizeExceeded()) {
-    //   this.setState(GameState.SaveSizeExceeded);
-    //   return;
-    // }
 
     this.setState(GameState.Checked);
   }
@@ -584,23 +573,6 @@ export class Game {
     this.db_.lastGameHistorySyncTime = time;
     await this.save(false);
   }
-
-  getEffectiveSaveBackupLimit(): number {
-    if (this.db_.useCustomSaveBackupLimit) {
-      return this.db_.saveBackupLimit * 1024 * 1024;
-    }
-    return this.settingService_.globalSaveBackupLimit * 1024 * 1024;
-  }
-
-  // async checkSaveSizeExceeded(): Promise<boolean> {
-  //   try {
-  //     const directorySize = await Utility.calculateDirectorySize(this.savePath);
-  //     const limit = this.getEffectiveSaveBackupLimit();
-  //     return directorySize > limit;
-  //   } catch {
-  //     return false;
-  //   }
-  // }
 
   getCurrentSave(): Save | null {
     return this.currentSave_;

@@ -80,7 +80,6 @@ export class Save {
     if (this.deleted)
       return;
 
-    console.log('call extractZip');
     await workerAPI.zip.extractZip({
       zipFilePath: this.filename,
       targetPath:  this.game_.savePath,
