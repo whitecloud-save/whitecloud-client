@@ -1,6 +1,9 @@
 import {Route} from '@sora-soft/framework';
+import {spawn} from 'child_process';
 import {app} from 'electron';
 import {hostname} from 'os';
+import path from 'path';
+import {Manager} from '../../manager.js';
 
 export class AppHandler extends Route {
   constructor(winId: number, module: string, data: unknown) {
@@ -47,7 +50,6 @@ export class AppHandler extends Route {
 
   @Route.method
   async startApplication(body: void) {
-    // const win = getWin();
     const systemPath = {
       appData: app.getPath('appData'),
       userData: app.getPath('userData'),
@@ -62,18 +64,11 @@ export class AppHandler extends Route {
       data: this.data_,
       winId: this.winId_,
     };
+  }
 
-    // const data = childWinMap.get(winId);
-    // if (data) {
-    //   return {
-    //     module: 'guide',
-    //     gameId: data.uuid,
-    //     path: systemPath,
-    //     hostname: hostname(),
-    //   };
-    // }
-
-    // return null;
+  @Route.method
+  async quitAndUpdate(updateAsarPath: string) {
+    Manager.updateAndQuit(updateAsarPath);
   }
 
   private module_: string;

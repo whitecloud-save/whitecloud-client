@@ -89,12 +89,10 @@ export class SyncRemoteGameDialogComponent {
     this.gameService.importRemoteGame(this.nzModalData.game, {
       savePath,
       gamePath,
-    })
-      .then(() => {
-        this.ref.close();
-      })
-      .catch((err) => {
-        this.errorHandler.handleError(err);
-      });
+    }).catch((err) => {
+      this.errorHandler.handleError(err);
+    });
+
+    this.ref.close();
   }
 }

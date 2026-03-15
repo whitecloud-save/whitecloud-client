@@ -9,6 +9,7 @@ import {WindowHandler} from './handler/main-handler/window-handler.js';
 import {ShellHandler} from './handler/main-handler/shell-handler.js';
 import {MenuHandler} from './handler/main-handler/menu-handler.js';
 import {fileURLToPath} from 'url';
+import {spawn} from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,8 +32,10 @@ export class Manager {
 
     const worker = utilityProcess.fork(path.join(__dirname, 'worker.js'));
     worker.on('exit', (code) => {
-      this.handleFatalError('异常', `后台进程发生异常退出，退出码:${code}`);
-      console.log(`Worker 进程已退出，退出码: ${code}`);
+      if (code) {
+        this.handleFatalError('异常', `后台进程发生异常退出，退出码:${code}`);
+        console.log(`Worker 进程已退出，退出码: ${code}`);
+      }
     });
     return this.worker_ = worker;
   }
@@ -273,6 +276,27 @@ export class Manager {
     this.mainWindows_?.close();
     this.mainWindows_ = undefined;
     app.quit();
+  }
+
+  static updateAndQuit(updateAsarPath: string) {
+    const updaterExe = path.join(process.resourcesPath, 'updater.exe');
+    const targetAsar = path.join(process.resourcesPath, 'app.asar');
+    const appExe = app.getPath('exe');
+    const pid = process.pid.toString();
+
+    const child = spawn(updaterExe, [
+      pid,
+      targetAsar,
+      updateAsarPath,
+      appExe
+    ], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true
+    });
+
+    child.unref();
+    Manager.quitApp();
   }
 
   private static worker_?: Electron.UtilityProcess;

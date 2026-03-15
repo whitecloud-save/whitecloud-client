@@ -14,8 +14,9 @@ import {RemoteSave} from '../entity/remote-save';
 import {Save} from '../entity/save';
 import {GameActivityService} from './game-activity.service';
 import {workerAPI} from '../library/api/worker-api';
-import {GameHistoryDB} from '../../../shared/database/game-history';
-import {LocalGameDB} from '../../../shared/database/game';
+import {GameHistoryDB} from '../database/game-history';
+import {LocalGameDB} from '../database/game';
+import {Logger} from 'app/library/logger';
 
 export interface IImportGameParams {
   name: string;
@@ -84,35 +85,11 @@ export class GameService {
         if (!game)
           continue;
 
-        const existing = await workerAPI.db.findOneGameHistory(history.id);
-
-        if (!existing) {
-          const historyDB = new GameHistoryDB({
-            id: history.id,
-            gameId: history.gameId,
-            host: history.host,
-            startTime: history.startTime,
-            endTime: history.endTime,
-            synced: 1,
-            createTime: history.createTime,
-          });
-          await workerAPI.db.saveGameHistory(historyDB);
-          game.addHistory(historyDB);
-        } else {
-          existing.startTime = history.startTime;
-          existing.endTime = history.endTime;
-          existing.host = history.host;
-          existing.createTime = history.createTime;
-          existing.synced = 1;
-          await workerAPI.db.saveGameHistory(existing);
-        }
-
-        await game.updateLastGameHistorySyncTime(history.createTime);
+        await game.syncGameHistoryFromServer([history]);
       }
     });
 
     this.userService.logged.subscribe(async (logged) => {
-      console.log('logged.subscribe', logged);
       if (logged) {
         for (const game of this.games.getValue()) {
           await this.uploadGameCover(game);
@@ -165,6 +142,7 @@ export class GameService {
 
       game.syncFromServer(data);
       game.syncSaveList();
+      game.syncGameHistory();
     }
   }
 
@@ -211,10 +189,10 @@ export class GameService {
     game.cloudSaveNum = remoteGame.cloudSaveNum;
     await game.save();
     this.addGame(game);
-    // await game.zipSave();
-    await game.updateCurrentSave();
-
     this.removeRemoteGame(remoteGame);
+
+    await game.updateCurrentSave();
+    Logger.addLog('import-remote-game', {id: game.id, name: game.name});
   }
 
   deleteRemoteSave(save: RemoteSave | Save) {
@@ -237,6 +215,8 @@ export class GameService {
       const localSave = await save.download();
       game.replaceRemoteSave(save, localSave);
     }
+
+    Logger.addLog('download-game-save', {id: game.id, name: game.name, saveId: save.id, size: save.size});
   }
 
   async importGame(params: IImportGameParams) {
@@ -268,6 +248,8 @@ export class GameService {
     await game.save();
     // await game.zipSave();
     this.addGame(game);
+
+    Logger.addLog('import-game', {id: game.id, name: game.name});
   }
 
   addDBGame(gameDB: LocalGameDB) {
@@ -309,11 +291,14 @@ export class GameService {
     this.games.next(pre.filter(g => g !== game));
     game.removeFromLocal();
     this.syncGameList();
+
+    Logger.addLog('remove-local-game', {id: game.id, name: game.name});
   }
 
   removeRemoteGame(game: RemoteGame) {
     const pre = this.remoteGames.getValue();
     this.remoteGames.next(pre.filter(g => g !== game));
+    Logger.addLog('remove-remote-game', {id: game.id, name: game.name});
   }
 
   syncRemoveRemoteGame(game: RemoteGame) {

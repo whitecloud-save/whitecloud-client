@@ -30,7 +30,7 @@
               "sha.js"
             ],
             "customWebpackConfig": {
-              "path": "./angular-webpack.config.js",
+              "path": "./angular-webpack.config.cjs",
               "replaceDuplicatePlugins": true
             },
             "outputPath": "dist/angular",

@@ -16,16 +16,19 @@ const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
 
 function findLatestUpdate(): string | null {
-  const updatesDir = path.join('data', 'updates');
+  const updatesDir = path.resolve('data', 'updates');
 
   if (!fs.existsSync(updatesDir)) {
     return null;
   }
 
   const files = fs.readdirSync(updatesDir);
-  const updateFiles: { version: string; path: string }[] = [];
+  const updateFiles: {version: string; path: string}[] = [];
 
   for (const file of files) {
+    if (path.extname(file) !== '.asar')
+      continue;
+
     const match = file.match(/^update-(.+)\.asar$/);
     if (match) {
       updateFiles.push({
@@ -43,27 +46,6 @@ function findLatestUpdate(): string | null {
   return updateFiles[updateFiles.length - 1].path;
 }
 
-function quitAndInstall(tempAsarPath: string) {
-  const updaterExe = path.join(process.resourcesPath, 'updater.exe');
-  const targetAsar = path.join(process.resourcesPath, 'app.asar');
-  const appExe = app.getPath('exe');
-  const pid = process.pid.toString();
-
-  const child = spawn(updaterExe, [
-    pid,
-    targetAsar,
-    tempAsarPath,
-    appExe
-  ], {
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: true
-  });
-
-  child.unref();
-  Manager.quitApp();
-}
-
 app.on('ready', () => {
   Manager.init();
 
@@ -71,7 +53,7 @@ app.on('ready', () => {
     const latestUpdatePath = findLatestUpdate();
 
     if (latestUpdatePath) {
-      quitAndInstall(latestUpdatePath);
+      Manager.updateAndQuit(latestUpdatePath);
       return;
     }
   }
@@ -92,15 +74,4 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   Manager.createMainWindow(serve);
-});
-
-ipcMain.handle('quit-and-install', () => {
-  if (!serve) {
-    const latestUpdatePath = findLatestUpdate();
-
-    if (latestUpdatePath) {
-      quitAndInstall(latestUpdatePath);
-      return;
-    }
-  }
 });

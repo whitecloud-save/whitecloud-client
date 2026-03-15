@@ -23,6 +23,9 @@ import {GameRouteReuseStrategy} from './game-route-reuse-strategy';
 import {UpdateService} from './service/update.service';
 import {DialogService} from './service/dialog.service';
 import {NzProgressModule} from 'ng-zorro-antd/progress';
+import {Logger} from './library/logger';
+import {mainAPI} from './library/api/main-api';
+import {LoggerService} from './service/logger.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -52,13 +55,18 @@ export class AppModule {
     private gameService: GameService,
     private settingService: SettingService,
     private updateService: UpdateService,
+    private loggerService: LoggerService,
   ) {
     this.startup();
   }
 
   async startup() {
+    await Logger.init();
+    this.loggerService.init();
     await this.settingService.load();
     await this.gameService.init();
     await this.updateService.onApplicationStartup();
+
+    Logger.addLog('app-start', {});
   }
 }

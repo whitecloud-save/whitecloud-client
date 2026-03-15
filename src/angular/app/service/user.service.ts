@@ -8,6 +8,8 @@ import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {NodeTime, UnixTime, Utility} from '../library/utility';
 import { BaseError } from '../library/error/BaseError';
+import {Logger} from 'app/library/logger';
+import {GameService} from './game.service';
 
 export interface IStorageInfo {
   usedSpace: bigint;
@@ -124,16 +126,12 @@ export class UserService {
     });
   }
 
-  async onAppStartup() {
-    // console.log('onAppStartup');
-    // await this.fetchUserInfo();
-  }
-
   get avatarUrl() {
     return this.userInfo?.avatar;
   }
 
   private setLogin(info: IUserInfo, token: string, expireAt: number, vipInfo?: AccountVIP, storageInfo?: IStorageInfo) {
+    Logger.setAccountId(info.id);
     this.userInfo = info;
     if (vipInfo) {
       this.userInfo.vipInfo = {
@@ -145,13 +143,15 @@ export class UserService {
       this.userInfo.storageInfo = storageInfo;
     }
     this.token.setToken(token, expireAt);
-    if (!this.logged.getValue())
+    if (!this.logged.getValue()) {
       this.logged.next(true);
+    }
   }
 
   private setLogout() {
     this.disconnectLogout();
     localStorage.removeItem('auto-login');
+    Logger.setAccountId(undefined);
   }
 
   private disconnectLogout() {

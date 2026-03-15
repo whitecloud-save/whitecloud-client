@@ -18,13 +18,13 @@ export class BasicSettingComponent {
   sliderMarks = { 10: '10MB', 50: '50MB', 100: '100MB' };
   UpdateState = UpdateState;
 
+
   openWithSystem = new FormControl();
   basicForm = new FormGroup({
     openWithSystem: this.openWithSystem,
   });
 
   constructor(
-    private settingService: SettingService,
     public updateService: UpdateService,
     private message: NzMessageService,
     private modal: NzModalService,
@@ -75,8 +75,9 @@ export class BasicSettingComponent {
       nzOkText: '立即重启',
       nzCancelText: '稍后',
       nzOnOk: () => {
-        // TODO
-        // ipcRenderer.invoke('quit-and-install');
+        if (this.updateService.waitingUpdatePath) {
+          mainAPI.app.quitAndUpdate(this.updateService.waitingUpdatePath);
+        }
       },
     });
   }

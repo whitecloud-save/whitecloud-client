@@ -1,16 +1,27 @@
-import {Injectable} from '@angular/core';
+import {ErrorHandler, Injectable} from '@angular/core';
 import {ServerService} from './server/server.service';
 import {ClientVersion} from './server/api';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {DialogService} from './dialog.service';
-import {workerAPI} from '../library/api/worker-api';
 import {mainAPI} from '../library/api/main-api';
+import {workerAPI} from 'app/library/api/worker-api';
+import {PathUtil} from 'app/library/path-util';
+import {BaseError} from 'app/library/error/BaseError';
+import {ErrorString} from 'app/library/error/ErrorString';
+import {Logger} from 'app/library/logger';
+
+export type Progress = {
+  percent: number;
+  transferred: number;
+  total?: number;
+};
 
 export enum UpdateState {
   Idle = 'idle',
   Checking = 'checking',
   Downloading = 'downloading',
   ReadyToInstall = 'ready-to-install',
+  Error = 'error',
 }
 
 export interface UpdateInfo {
@@ -27,6 +38,8 @@ export class UpdateService {
   private state_ = new BehaviorSubject<UpdateState>(UpdateState.Idle);
   private downloadProgress_ = new BehaviorSubject<number>(0);
   private updateInfo_ = new BehaviorSubject<UpdateInfo | null>(null);
+  private waitingUpdatePath_?: string;
+  private error_?: Error;
 
   get state(): Observable<UpdateState> {
     return this.state_.asObservable();
@@ -44,9 +57,30 @@ export class UpdateService {
     return this.state_.value;
   }
 
+  get errorMessage() {
+    if (!this.error_)
+      return '';
+
+    if (this.error_ instanceof BaseError) {
+      return ErrorString[this.error_.code] as string || this.error_.message;
+    }
+
+    if (this.error_ instanceof Error) {
+      return this.error_.message;
+    }
+
+    return '未知错误';
+    // return
+  }
+
+  get waitingUpdatePath() {
+    return this.waitingUpdatePath_;
+  }
+
   constructor(
     private server: ServerService,
     private dialogService: DialogService,
+    private errorHandler: ErrorHandler,
   ) {}
 
   async onApplicationStartup() {
@@ -72,7 +106,7 @@ export class UpdateService {
     this.state_.next(UpdateState.Checking);
 
     try {
-      const versions = await this.server.business.fetchClientUpdates({ version: currentVersion });
+      const versions = await this.server.business.fetchClientUpdates({version: currentVersion});
 
       if (!versions || versions.length === 0) {
         this.state_.next(UpdateState.Idle);
@@ -94,7 +128,7 @@ export class UpdateService {
 
       return info;
     } catch (error) {
-      console.error('检查更新失败:', error);
+      this.errorHandler.handleError(error);
       this.state_.next(UpdateState.Idle);
       return null;
     }
@@ -104,149 +138,30 @@ export class UpdateService {
     this.state_.next(UpdateState.Downloading);
     this.downloadProgress_.next(0);
 
-    // TODO
-    return false;
-    // try {
-    //   const updatesDir = path.join('data', 'updates');
+    const updatesDir = PathUtil.join('data', 'updates');
+    const targetPath = PathUtil.join(updatesDir, `update-${version.version}.asar`)
+    const downloaded = await workerAPI.oss.downloadUpdate({
+      savePath: targetPath,
+      url: version.asarUrl,
+      hash: version.asarHash
+    }, (progress: Progress) => {
+      this.downloadProgress_.next(parseInt((progress.percent * 100).toFixed(0)));
+    }).catch(err => {
+      this.state_.next(UpdateState.Error);
+      this.error_ = err;
+      return false;
+    });
 
-    //   if (!await workerAPI.fs.exists(updatesDir)) {
-    //     await workerAPI.fs.mkdir({
-    //       path: updatesDir,
-    //       options: {
-    //         recursive: true,
-    //       },
-    //     });
-    //   }
+    if (downloaded) {
+      this.waitingUpdatePath_ = targetPath;
+      this.state_.next(UpdateState.ReadyToInstall);
+      Logger.addLog('update-downloaded', {version: version.version});
+    }
 
-    //   const targetPath = path.join(updatesDir, `update-${version.version}.asar`);
-
-    //   if (fs.existsSync(targetPath)) {
-    //     const isValid = await this.verifyFileHash(targetPath, version.asarHash);
-    //     if (isValid) {
-    //       const updateAsarPath = path.join(process.resourcesPath, 'update.asar');
-    //       fs.copyFileSync(targetPath, updateAsarPath);
-    //       this.state_.next(UpdateState.ReadyToInstall);
-    //       return true;
-    //     }
-    //     fs.unlinkSync(targetPath);
-    //   }
-
-    //   const tempPath = path.join(updatesDir, `update-${version.version}.asar.tmp`);
-    //   if (fs.existsSync(tempPath)) {
-    //     fs.unlinkSync(tempPath);
-    //   }
-
-    //   await this.downloadFile(version.asarUrl, tempPath, version.asarHash);
-
-    //   fs.renameSync(tempPath, targetPath);
-    //   this.state_.next(UpdateState.ReadyToInstall);
-    //   return true;
-    // } catch (error) {
-    //   console.error('下载更新失败:', error);
-    //   this.state_.next(UpdateState.Idle);
-    //   return false;
-    // }
-  }
-
-  private async verifyFileHash(filePath: string, expectedHash: string): Promise<boolean> {
-    // TODO
-    return false;
-
-    // return new Promise((resolve, reject) => {
-    //   const hash = crypto.createHash('sha1');
-    //   const stream = fs.createReadStream(filePath);
-
-    //   stream.on('data', (chunk) => {
-    //     hash.update(chunk);
-    //   });
-
-    //   stream.on('end', () => {
-    //     const fileHash = hash.digest('hex').substring(0, 10);
-    //     stream.destroy();
-    //     console.log(fileHash, expectedHash);
-    //     resolve(fileHash === expectedHash);
-    //   });
-
-    //   stream.on('error', (err) => {
-    //     stream.destroy();
-    //     reject(err);
-    //   });
-    // });
-  }
-
-  private async downloadFile(url: string, destPath: string, expectedHash: string): Promise<void> {
-    // return new Promise((resolve, reject) => {
-    //   const file = fs.createWriteStream(destPath);
-    //   const hash = crypto.createHash('sha1');
-
-    //   const protocol = url.startsWith('https://') ? https : http;
-    //   const request = protocol.get(url, (response: any) => {
-    //     if (response.statusCode === 301 || response.statusCode === 302) {
-    //       response.destroy();
-    //       file.destroy();
-    //       fs.unlinkSync(destPath);
-    //       this.downloadFile(response.headers.location, destPath, expectedHash)
-    //         .then(resolve)
-    //         .catch(reject);
-    //       return;
-    //     }
-
-    //     const totalSize = parseInt(response.headers['content-length'], 10);
-    //     let downloadedSize = 0;
-
-    //     response.on('data', (chunk: Buffer) => {
-    //       downloadedSize += chunk.length;
-    //       hash.update(chunk);
-    //       if (totalSize) {
-    //         const progress = Math.round((downloadedSize / totalSize) * 100);
-    //         this.downloadProgress_.next(progress);
-    //       }
-    //     });
-
-    //     response.pipe(file);
-
-    //     file.on('finish', () => {
-    //       file.close();
-    //       const fileHash = hash.digest('hex').substring(0, 10);
-
-    //       if (fileHash !== expectedHash) {
-    //         fs.unlinkSync(destPath);
-    //         reject(new Error(`哈希验证失败: 期望 ${expectedHash}, 实际 ${fileHash}`));
-    //         return;
-    //       }
-
-    //       resolve();
-    //     });
-    //   });
-
-    //   request.on('error', (err: Error) => {
-    //     file.destroy();
-    //     if (fs.existsSync(destPath)) {
-    //       try {
-    //         fs.unlinkSync(destPath);
-    //       } catch {
-    //         // ignore
-    //       }
-    //     }
-    //     reject(err);
-    //   });
-
-    //   file.on('error', (err: Error) => {
-    //     file.destroy();
-    //     if (fs.existsSync(destPath)) {
-    //       try {
-    //         fs.unlinkSync(destPath);
-    //       } catch {
-    //         // ignore
-    //       }
-    //     }
-    //     reject(err);
-    //   });
-    // });
+    return !!downloaded;
   }
 
   openWebsite(): void {
     mainAPI.shell.openExternal('https://whitecloud.xyyaya.com');
-    // shell.openExternal('https://whitecloud.xyyaya.com');
   }
 }

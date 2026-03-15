@@ -8,16 +8,26 @@
   <nz-form-item>
     <nz-form-label [nzSpan]="6" nzFor="openWithSystem">当前版本</nz-form-label>
     <nz-form-control [nzSpan]="14">
-      {{version}}
-      @if (updateService.currentState === UpdateState.Idle) {
-        <button nz-button nzType="link" (click)="checkForUpdates()">检查更新</button>
-      } @else if (updateService.currentState === UpdateState.Checking) {
-        <button nz-button nzType="link" [disabled]="true">正在检查更新</button>
-      } @else if (updateService.currentState === UpdateState.Downloading) {
-        <button nz-button nzType="link" [disabled]="true">正在下载更新</button>
-      } @else if (updateService.currentState === UpdateState.ReadyToInstall) {
-        <button nz-button nzType="link" (click)="confirmInstallUpdate()">更新已准备就绪</button>
-      }
+      <div style="display: flex; align-items: center;">
+        <span style="margin-right: 10px;">{{version}}</span>
+        @if (updateService.currentState === UpdateState.Idle) {
+          <button nz-button nzType="link" (click)="checkForUpdates()">检查更新</button>
+        } @else if (updateService.currentState === UpdateState.Checking) {
+          <button nz-button nzType="link" [disabled]="true">正在检查更新</button>
+        } @else if (updateService.currentState === UpdateState.Downloading) {
+          <button nz-button nzType="link" [disabled]="true">正在下载更新{{updateService.downloadProgress | async}}%</button>
+        } @else if (updateService.currentState === UpdateState.ReadyToInstall) {
+          <button nz-button nzType="link" (click)="confirmInstallUpdate()">更新已准备就绪</button>
+        } @else if (updateService.currentState === UpdateState.Error) {
+          <div
+            style="flex: 1; color: #ff4d4f; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+            nz-tooltip [nzTooltipTitle]="updateService.errorMessage"
+          >
+            错误：{{updateService.errorMessage}}
+          </div>
+          <button nz-button nzType="link" (click)="checkForUpdates()">重试</button>
+        }
+      </div>
     </nz-form-control>
   </nz-form-item>
 </form>

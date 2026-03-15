@@ -56,7 +56,6 @@ export class UserSettingComponent {
     });
 
     this.userService.storageUpdate.subscribe((notify) => {
-      console.log('storageUpdate', notify);
       if (notify) {
         this.fetchStorageInfo();
       }

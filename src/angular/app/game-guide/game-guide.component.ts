@@ -2,7 +2,7 @@ import {Component, Inject} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {debounceTime} from 'rxjs';
 import {GuideGameId} from '../../main';
-import {GameGuideDB} from '../../../shared/database/game-guide';
+import {GameGuideDB} from '../database/game-guide';
 import {workerAPI} from 'app/library/api/worker-api';
 import {mainAPI} from 'app/library/api/main-api';
 

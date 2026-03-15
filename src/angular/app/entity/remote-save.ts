@@ -2,7 +2,7 @@ import {UserGameSave} from '../service/server/api';
 import {Game} from './game';
 import {Save, SaveState} from './save';
 import {PathUtil} from '../library/path-util';
-import {SaveDB} from '../../../shared/database/save';
+import {SaveDB} from '../database/save';
 import {workerAPI} from 'app/library/api/worker-api';
 
 export class RemoteSave {

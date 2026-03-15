@@ -2,9 +2,9 @@ import {Injectable} from '@angular/core';
 import {ErrorString} from '../library/error/ErrorString';
 import {NodeTime, UnixTime} from '../library/utility';
 import {UserErrorCode} from './server/api';
-import {GameActivityData, GameActivityDB, GameActivityType, SaveFailedData} from '../../../shared/database/game-activity';
+import {GameActivityData, GameActivityDB, GameActivityType, SaveFailedData} from '../database/game-activity';
 import {workerAPI} from '../library/api/worker-api';
-import {GameHistoryDB} from '../../../shared/database/game-history';
+import {GameHistoryDB} from '../database/game-history';
 
 export interface GameActivity {
   id: string;
@@ -48,11 +48,6 @@ export class GameActivityService {
 
     await workerAPI.db.saveGameActivity(activity);
     return activity;
-    // activity.gameId = gameId;
-    // activity.type = type;
-    // activity.data = JSON.stringify(data);
-    // activity.createdAt = new Date(NodeTime.now() + offset * 1000);
-    // return await AppDataSource.manager.save(activity);
   }
 
   async saveBackupLocal(gameId: string, offset = 0): Promise<GameActivityDB> {
@@ -92,6 +87,7 @@ export class GameActivityService {
   async getCombinedActivities(gameId: string): Promise<GameActivity[]> {
     const activities = await this.getActivitiesByGameId(gameId);
     const historyList = await this.getGameHistoryByGameId(gameId);
+    console.log(historyList);
 
     const gameTimeActivities: GameTimeActivity[] = historyList.map(history => ({
       id: history.id,

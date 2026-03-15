@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, ErrorHandler, Input, NgZone, OnDestroy, ViewChild} from '@angular/core';
 import {Save, SaveState} from '../../../entity/save';
-import {Game} from '../../../entity/game';
+import {Game, GameState} from '../../../entity/game';
 import {Utility} from '../../../library/utility';
 import {Subject, Subscription, debounceTime, takeUntil} from 'rxjs';
 import {NzTableComponent} from 'ng-zorro-antd/table';
@@ -51,6 +51,10 @@ export class GameSaveTableComponent implements AfterViewInit, OnDestroy {
     private saveTransferService: SaveTransferService,
     private zone: NgZone,
   ) {}
+
+  get saveOperationDisabled() {
+    return this.isTransferring || this.game.state.getValue() !== GameState.Checked;
+  }
 
   ngAfterViewInit() {
     this.resizeSub_ = Utility.resizeObservable(this.container.nativeElement).pipe(

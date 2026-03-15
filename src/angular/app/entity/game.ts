@@ -16,10 +16,10 @@ import {OssService} from '../service/oss.service';
 import {RemoteSave} from './remote-save';
 import {GameActivityService} from '../service/game-activity.service';
 import {workerAPI} from '../library/api/worker-api';
-import {LocalGameDB} from '../../../shared/database/game';
-import {GameHistoryDB} from '../../../shared/database/game-history';
-import {SaveDB} from '../../../shared/database/save';
-import {GameActivityType} from '../../../shared/database/game-activity';
+import {LocalGameDB} from '../database/game';
+import {GameHistoryDB} from '../database/game-history';
+import {SaveDB} from '../database/save';
+import {GameActivityType} from '../database/game-activity';
 import {mainAPI} from '../library/api/main-api';
 import {Base64} from 'js-base64';
 
@@ -89,6 +89,7 @@ export class Game {
     }
 
     this.syncSaveList();
+    this.syncGameHistory();
 
     const historyList = await workerAPI.db.findGameHistory(this.id);
     this.history_ = historyList;
@@ -122,6 +123,47 @@ export class Game {
         }
       }
     }
+  }
+
+  async syncGameHistory() {
+    if (this.userService_.isOnline()) {
+      const list = await this.serverService_.business.fetchGameHistory({
+        gameId: this.id,
+        lastSyncTime: this.db_.lastGameHistorySyncTime || 0,
+      });
+
+      await this.syncGameHistoryFromServer(list);
+
+    }
+  }
+
+  async syncGameHistoryFromServer(list: Omit<GameHistory, 'accountId'>[]) {
+    for (const history of list) {
+      const existing = await workerAPI.db.findOneGameHistory(history.id);
+
+      if (!existing) {
+        const historyDB = new GameHistoryDB({
+          id: history.id,
+          gameId: history.gameId,
+          host: history.host,
+          startTime: history.startTime,
+          endTime: history.endTime,
+          synced: 1,
+          createTime: history.createTime,
+        });
+        await workerAPI.db.saveGameHistory(historyDB);
+        this.addHistory(historyDB);
+      } else {
+        existing.startTime = history.startTime;
+        existing.endTime = history.endTime;
+        existing.host = history.host;
+        existing.createTime = history.createTime;
+        existing.synced = 1;
+        await workerAPI.db.saveGameHistory(existing);
+      }
+    }
+
+    await this.updateLastGameHistorySyncTime(UnixTime.now());
   }
 
   removeAllRemoteSave() {
@@ -179,7 +221,6 @@ export class Game {
   }
 
   async onGameProcessExit() {
-    await this.zipSave();
     const endTime = UnixTime.now();
     const historyDB = new GameHistoryDB({
       id: v4(),
@@ -192,10 +233,11 @@ export class Game {
     })
 
     await workerAPI.db.saveGameHistory(historyDB);
-
     this.history_ = [...this.history_, historyDB];
     this.activityUpdate$.next(this.id);
     this.gameStartTime_ = 0;
+
+    await this.zipSave();
 
     this.syncGameHistoryToServer([historyDB]).catch((error) => {
       console.error('同步游戏历史记录失败:', error);

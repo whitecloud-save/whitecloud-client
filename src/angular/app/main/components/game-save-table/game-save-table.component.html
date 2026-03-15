@@ -44,7 +44,7 @@
                   <fa-icon [icon]="iconService.light.faPen"></fa-icon>
                 </button>
                 @if(!isStateCurrent(data)) {
-                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="回滚到该存档" [disabled]="data.deleted || isTransferring" (click)="rollbackSave(data)">
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="回滚到该存档" [disabled]="data.deleted || saveOperationDisabled" (click)="rollbackSave(data)">
                     <fa-icon [icon]="iconService.light.faRotateRight"></fa-icon>
                   </button>
                 }
@@ -53,17 +53,17 @@
                   <fa-icon [icon]="iconService.solid.faStar" *ngIf="data.stared"></fa-icon>
                 </button>
                 @if(!data.ossPath && userService.isOnline()) {
-                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="上传存档" [disabled]="data.deleted || isTransferring" (click)="uploadSave(data)">
+                  <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="上传存档" [disabled]="data.deleted || saveOperationDisabled" (click)="uploadSave(data)">
                     <fa-icon [icon]="iconService.light.faUpload"></fa-icon>
                   </button>
                 }
               } @else {
-                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="下载存档" [disabled]="isTransferring" (click)="downloadSave(data)">
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="下载存档" [disabled]="saveOperationDisabled" (click)="downloadSave(data)">
                   <fa-icon [icon]="iconService.light.faDownload"></fa-icon>
                 </button>
               }
               @if(!isStateCurrent(data) && data.available) {
-                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" [disabled]="isTransferring" (click)="deleteSave(data)">
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="删除该存档" [disabled]="saveOperationDisabled" (click)="deleteSave(data)">
                   <fa-icon [icon]="iconService.light.faTrash"></fa-icon>
                 </button>
               }

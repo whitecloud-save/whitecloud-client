@@ -2,7 +2,7 @@ import {PathUtil} from '../library/path-util';
 import {Game} from './game';
 import {UnixTime} from '../library/utility';
 import {UserGameSave} from '../service/server/api';
-import {SaveDB} from '../../../shared/database/save';
+import {SaveDB} from '../database/save';
 import {workerAPI} from '../library/api/worker-api';
 
 export enum SaveState {
