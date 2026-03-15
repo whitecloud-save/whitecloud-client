@@ -14,6 +14,8 @@ import {GameHistoryDB} from './database/game-history.js';
 import {GameGuideDB} from './database/game-guide.js';
 import {GameActivityDB} from './database/game-activity.js';
 import {OssHandler} from './handler/worker-handler/oss-handler.js';
+import fs from 'fs';
+import path from 'path';
 
 let dataSource: DataSource | null = null;
 
@@ -36,6 +38,7 @@ const MessageRoute = {
 process.parentPort.on('message', async (event) => {
   if (event.data.command === 'init-port') {
     const dbPath = event.data.dbPath;
+    await fs.promises.mkdir(path.dirname(dbPath), {recursive: true});
 
     if (!dataSource) {
       dataSource = new DataSource({

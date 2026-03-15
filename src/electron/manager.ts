@@ -107,9 +107,10 @@ export class Manager {
 
       win!.webContents.postMessage('worker-port-init', null, [workerChannel.port1]);
 
+      console.log(process.execPath);
       this.worker_.postMessage({
         command: 'init-port',
-        dbPath: path.join(app.isPackaged ? process.execPath : app.getAppPath(), 'data', 'db.sqlite')
+        dbPath: path.join(app.isPackaged ? path.dirname(process.execPath) : app.getAppPath(), 'data', 'db.sqlite')
       }, [workerChannel.port2]);
 
       const mainChannel = new MessageChannelMain();
@@ -210,7 +211,7 @@ export class Manager {
 
       this.worker_.postMessage({
         command: 'init-port',
-        dbPath: path.join(app.isPackaged ? process.execPath : app.getAppPath(), 'data', 'db.sqlite')
+        dbPath: path.join(app.isPackaged ? path.dirname(process.execPath) : app.getAppPath(), 'data', 'db.sqlite')
       }, [workerChannel.port2]);
 
       win!.webContents.postMessage('main-port-init', null, [mainChannel.port1]);
