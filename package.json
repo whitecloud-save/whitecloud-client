@@ -11,7 +11,7 @@
     "build:preload": "tsc --project src/preload/tsconfig.json",
     "build:package": "electron-forge package",
     "build:updater": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe /out:updater.exe scripts\\updater.cs",
-    "build": "npm run build:angular && npm run build:electron && npm run build:preload && electron-forge package && node scripts/compute-asar-hash.js"
+    "build": "npm run build:electron && npm run build:angular && npm run build:preload && electron-forge package && node scripts/compute-asar-hash.js"
   },
   "main": "dist/electron/electron.js",
   "type": "module",
