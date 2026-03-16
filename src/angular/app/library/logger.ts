@@ -2,10 +2,14 @@ import SlsTracker from '@aliyun-sls/web-track-browser'
 import {mainAPI} from './api/main-api';
 import {UnixTime} from './utility';
 import moment from 'moment';
+import {v4} from 'uuid';
 
 export class Logger {
   static async init() {
     this.version_ = await mainAPI.app.getVersion();
+    const deviceId = localStorage.getItem('app:device');
+    this.deviceId_ = deviceId || v4();
+    localStorage.setItem('app:device', this.deviceId_);
 
     const opts = {
       host: 'cn-shanghai.log.aliyuncs.com', // 所在地域的服务入口。例如cn-hangzhou.log.aliyuncs.com
@@ -34,10 +38,12 @@ export class Logger {
       accountId: this.accountId_,
       time: moment().format('YYYY-MM-DD HH:mm:ss'),
       timestamp: UnixTime.now(),
+      device: this.deviceId_,
     });
   }
 
   private static tracker_: SlsTracker;
   private static version_: string;
   private static accountId_?: number;
+  private static deviceId_?: string;
 }
