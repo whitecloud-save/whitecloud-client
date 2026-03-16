@@ -99,7 +99,7 @@ export class SaveProgressNotification {
 })
 export class SaveTransferService {
   constructor(
-    private notification: NzNotificationService
+    private notificationService: NzNotificationService
   ) {
     this.transferRef_ = new BehaviorSubject(0);
     this.notifications_ = [];
@@ -113,7 +113,7 @@ export class SaveTransferService {
     if (!this.contentTemplate_)
       throw new BaseError(ErrorCode.ERR_CONTENT_TEMPLATE_NOT_FOUND, 'should call SaveTransferService.setContentTemplate first');
 
-    const notification = new SaveProgressNotification(title, icon, type, this.contentTemplate_, this.notification);
+    const notification = new SaveProgressNotification(title, icon, type, this.contentTemplate_, this.notificationService);
     const ref = this.transferRef_.value;
     this.transferRef_.next(ref + 1);
     this.notifications_.push(notification);
@@ -135,6 +135,13 @@ export class SaveTransferService {
     for(const notification of this.notifications_) {
       notification.show();
     }
+  }
+
+  handleError(err: Error, title: string, type: SaveProgressType) {
+    const content = `${SaveProgressTypeString[type]}存档失败：${err instanceof BaseError ? err.showMessage : err.message}`;
+    this.notificationService.error(title, content, {
+      nzDuration: 0,
+    });
   }
 
   private transferRef_: BehaviorSubject<number>;

@@ -59,44 +59,56 @@ export class OssService {
     const notification = this.saveTransfer.startSaveTransfer(save.game.name, save.game.iconPath, SaveProgressType.Download);
     notification.start();
 
-    const res = await this.server.business.signGameSaveUrl({url: save.ossPath});
-    await workerAPI.oss.downloadSave({
-      url: res.url,
-      savePath: save.filename,
-    }, (progress: Progress) => {
-      notification.update(progress.percent * 100);
-    }).finally(() => {
+    try {
+      const res = await this.server.business.signGameSaveUrl({url: save.ossPath});
+      await workerAPI.oss.downloadSave({
+        url: res.url,
+        savePath: save.filename,
+      }, (progress: Progress) => {
+        notification.update(progress.percent * 100);
+      });
+    } catch (err) {
+      this.saveTransfer.handleError(err as Error, save.game.name, SaveProgressType.Download);
+      throw err;
+    } finally {
       notification.close();
-    });;
+    }
   }
 
   async uploadGameSave(save: Save) {
     const notification = this.saveTransfer.startSaveTransfer(save.game.name, save.game.iconPath, SaveProgressType.Upload);
     notification.start();
 
-    const data = await this.server.business.generateGameSaveSignatureV4({
-      gameId: save.game.id,
-      saveId: save.id,
-      remark: save.remark,
-      size: save.size.toString(),
-      stared: save.stared,
-      hostname: save.hostname,
-      createTime: save.createTime,
-      directoryHash: save.directoryHash,
-      zipHash: save.zipHash,
-      directorySize: save.directorySize?.toString(),
-    });
+    try {
+      const data = await this.server.business.generateGameSaveSignatureV4({
+        gameId: save.game.id,
+        saveId: save.id,
+        remark: save.remark,
+        size: save.size.toString(),
+        stared: save.stared,
+        hostname: save.hostname,
+        createTime: save.createTime,
+        directoryHash: save.directoryHash,
+        zipHash: save.zipHash,
+        directorySize: save.directorySize?.toString(),
+      });
 
-    await workerAPI.oss.uploadSave({
-      ...data,
-      saveFilePath: save.filename,
-    }, (progress: Progress) => {
-      notification.update(progress.percent * 100);
-    }).finally(() => {
+      await workerAPI.oss.uploadSave({
+        ...data,
+        saveFilePath: save.filename,
+      }, (progress: Progress) => {
+        notification.update(progress.percent * 100);
+      }).finally(() => {
+        notification.close();
+      });
+      return data.filename;
+    } catch (err) {
+      this.saveTransfer.handleError(err as Error, save.game.name, SaveProgressType.Upload);
+      throw err;
+    } finally {
       notification.close();
-    });
+    }
 
-    return data.filename;
   }
 
   async uploadAvatar(file: File) {
