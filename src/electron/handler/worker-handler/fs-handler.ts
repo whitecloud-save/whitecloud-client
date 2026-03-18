@@ -1,5 +1,5 @@
 import {Route} from '@sora-soft/framework';
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import xml2js from 'xml2js';
 
@@ -14,23 +14,23 @@ export interface FileStats {
 export class FsHandler extends Route {
   @Route.method
   async readFile(filePath: string): Promise<Uint8Array> {
-    return fs.readFile(filePath);
+    return fs.promises.readFile(filePath);
   }
 
   @Route.method
   async writeFile(args: { path: string; data: Uint8Array | string }): Promise<void> {
-    await fs.writeFile(args.path, args.data);
+    await fs.promises.writeFile(args.path, args.data);
   }
 
   @Route.method
   async deleteFile(filePath: string): Promise<void> {
-    await fs.unlink(filePath);
+    await fs.promises.unlink(filePath);
   }
 
   @Route.method
   async exists(filePath: string): Promise<boolean> {
     try {
-      await fs.access(filePath);
+      await fs.promises.access(filePath);
       return true;
     } catch {
       return false;
@@ -39,17 +39,17 @@ export class FsHandler extends Route {
 
   @Route.method
   async readdir(dirPath: string): Promise<string[]> {
-    return await fs.readdir(dirPath);
+    return await fs.promises.readdir(dirPath);
   }
 
   @Route.method
   async readdirRecursive(dirPath: string): Promise<string[]> {
     const result: string[] = [];
-    const files = await fs.readdir(dirPath);
+    const files = await fs.promises.readdir(dirPath);
 
     for (const file of files) {
       const filePath = path.join(dirPath, file);
-      const stat = await fs.stat(filePath);
+      const stat = await fs.promises.stat(filePath);
 
       if (stat.isDirectory()) {
         const folderResult = await this.readdirRecursive(filePath);
@@ -64,21 +64,21 @@ export class FsHandler extends Route {
 
   @Route.method
   async mkdir(args: { path: string; options?: { recursive?: boolean } }): Promise<void> {
-    await fs.mkdir(args.path, args.options);
+    await fs.promises.mkdir(args.path, args.options);
   }
 
   @Route.method
   async deleteDir(args: { path: string; options?: { recursive?: boolean } }): Promise<void> {
     if (args.options?.recursive) {
-      await fs.rm(args.path, { recursive: true, force: true });
+      await fs.promises.rm(args.path, { recursive: true, force: true });
     } else {
-      await fs.rmdir(args.path);
+      await fs.promises.rmdir(args.path);
     }
   }
 
   @Route.method
   async stat(filePath: string) {
-    const stats = await fs.stat(filePath);
+    const stats = await fs.promises.stat(filePath);
     return {
       isFile: stats.isFile(),
       isDirectory: stats.isDirectory(),
@@ -90,7 +90,7 @@ export class FsHandler extends Route {
 
   @Route.method
   async lstat(filePath: string) {
-    const stats = await fs.lstat(filePath);
+    const stats = await fs.promises.lstat(filePath);
     return {
       isFile: stats.isFile(),
       isDirectory: stats.isDirectory(),
@@ -102,18 +102,9 @@ export class FsHandler extends Route {
 
   @Route.method
   async readXML(filePath: string) {
-    const xml = await fs.readFile(filePath);
-    // const xml = await workerAPI.fs.readFile(PathUtil.join(PathUtil.dirname(this.LEExePath), 'LEConfig.xml'));
-      const parser = new xml2js.Parser();
-      const parsed = await parser.parseStringPromise(xml);
-      return parsed;
-      try {
-
-        // const configList = profile.LEConfig.Profiles[0].Profile.map((p: any) => ({label: p.$.Name, value: p.$.Guid}));
-        // return configl
-        // this.LEProfileSelections.next(configList);
-      } catch (err) {
-        console.log(err);
-      }
+    const xml = await fs.promises.readFile(filePath);
+    const parser = new xml2js.Parser();
+    const parsed = await parser.parseStringPromise(xml);
+    return parsed;
   }
 }
