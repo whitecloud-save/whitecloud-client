@@ -1,9 +1,12 @@
-import {Injectable} from '@angular/core';
+import {Injectable, OnDestroy} from '@angular/core';
 import {BaseError} from '../../../library/error/BaseError';
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {GameService, IImportGameParams} from '../../../service/game.service';
 import {PathUtil} from '../../../library/path-util';
 import {workerAPI} from '../../../library/api/worker-api';
+import {mainAPI} from 'app/library/api/main-api';
+import {Subscription} from 'rxjs';
+import {SteamUtility} from 'app/library/utility';
 
 export enum GameImportStep {
   SelectGameDir = 1,
@@ -20,12 +23,18 @@ export interface IImportGameSetting {
 @Injectable({
   providedIn: null,
 })
-export class GameImportService {
+export class GameImportService implements OnDestroy {
   GameImportStep = GameImportStep;
   step = GameImportStep.SelectGameDir;
   setting: IImportGameSetting = {};
   exeSelections: string[] = [];
   error?: Error;
+  selectGameSavePathSub: Subscription;
+
+  steamInfo: {
+    appid: string;
+    name: string;
+  } | null = null;
 
   detailForm: UntypedFormGroup;
   coverForm: UntypedFormGroup;
@@ -41,11 +50,21 @@ export class GameImportService {
     this.coverForm = this.fb.group({
       coverImageUrl: [null, [Validators.required]],
     });
+
+    this.selectGameSavePathSub = mainAPI.client.createNotifyObserver('select-game-save-path').subscribe((notify) => {
+      this.detailForm.patchValue({
+        savePath: notify.payload,
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.selectGameSavePathSub.unsubscribe();
   }
 
   async selectGamePath(dirPath: string) {
     this.setting.gamePath = dirPath;
-    const files = await workerAPI.fs.readdir(dirPath); // fs.readdir(dirPath);
+    const files = await workerAPI.fs.readdir(dirPath);
     this.exeSelections = [];
 
     for (const file of files) {
@@ -73,10 +92,24 @@ export class GameImportService {
     });
     if (!this.exeSelections.length) {
       this.error = new BaseError('ERR_GAME_EXE_NOT_FOUND', 'ERR_GAME_EXE_NOT_FOUND');
-    } else {
-      this.step = GameImportStep.SetGameExePath;
-      this.setting.exeFile = this.exeSelections.find(selection => selection.indexOf('chs') >= 0) || this.exeSelections[0];
+      return;
     }
+
+    this.steamInfo = await SteamUtility.findSteamInfo(dirPath);
+
+    this.step = GameImportStep.SetGameExePath;
+    this.setting.exeFile = this.exeSelections.find(selection => selection.toLowerCase().indexOf('chs') >= 0) || this.exeSelections[0];
+  }
+
+  async confirm() {
+    const detail: {name: string; savePath: string} = this.detailForm.value;
+    const cover: {coverImageUrl: string} = this.coverForm.value;
+
+    this.gameService.importGame({
+      ...this.setting,
+      ...detail,
+      coverImgUrl: cover.coverImageUrl,
+    } as IImportGameParams);
   }
 
   async setSavePath(dirPath: string) {
@@ -105,14 +138,7 @@ export class GameImportService {
     };
   }
 
-  async confirm() {
-    const detail: {name: string; savePath: string} = this.detailForm.value;
-    const cover: {coverImageUrl: string} = this.coverForm.value;
-
-    this.gameService.importGame({
-      ...this.setting,
-      ...detail,
-      coverImgUrl: cover.coverImageUrl,
-    } as IImportGameParams);
+  get isSteam() {
+    return !!this.steamInfo;
   }
 }

@@ -90,7 +90,7 @@ export class PathUtil {
       return true;
     }
 
-    if (path.startsWith(PathUtil.WINDOWS_PATH_SEPARATOR) || 
+    if (path.startsWith(PathUtil.WINDOWS_PATH_SEPARATOR) ||
         path.startsWith(PathUtil.POSIX_PATH_SEPARATOR)) {
       return true;
     }
@@ -181,5 +181,38 @@ export class PathUtil {
     }
 
     return relativeParts.join(PathUtil.WINDOWS_PATH_SEPARATOR) || '.';
+  }
+
+  static findImmediateCommonParents(paths: string[]): string[] {
+    if (paths.length < 2) return [];
+
+    // 用于统计每个直接父目录出现的次数
+    const parentCounts = new Map<string, number>();
+
+    for (const p of paths) {
+      const parent = this.dirname(p);
+
+      // 如果传入的本身就是根目录，path.dirname 返回它自身，直接跳过
+      if (parent === p) continue;
+
+      // 规则：不为根目录。
+      // 特性：如果是根目录（如 'C:/' 或 '/'），它的 dirname 依然是它自己
+      if (parent === this.dirname(parent)) {
+        continue;
+      }
+
+      // 频次 +1
+      parentCounts.set(parent, (parentCounts.get(parent) || 0) + 1);
+    }
+
+    // 收集出现次数 >= 2 的父目录
+    const results: string[] = [];
+    for (const [parent, count] of parentCounts.entries()) {
+      if (count >= 2) {
+        results.push(parent);
+      }
+    }
+
+    return results;
   }
 }

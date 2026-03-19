@@ -8,6 +8,6 @@
 
 <nz-modal [(nzVisible)]="isVisible" nzTitle="选择游戏封面" (nzOnCancel)="isVisible = false" (nzOnOk)="confirm()" [nzOkDisabled]="!cacheUrl">
   <ng-container *nzModalContent>
-    <app-image-selector [searchKeyWord]="searchKeyword" [(ngModel)]="cacheUrl"></app-image-selector>
+    <app-image-selector [searchKeyWord]="searchKeyword" [(ngModel)]="cacheUrl" [steamAppid]="steamAppId"></app-image-selector>
   </ng-container>
 </nz-modal>

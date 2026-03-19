@@ -9,6 +9,7 @@ export enum GamePathMark {
   GameRoot = '$GAME_ROOT',
   AppPath = '$APP_PATH',
   UserData = '$USER_DATA',
+  Document = '$Document',
 }
 
 export interface ISystemPathSetting {
@@ -64,6 +65,10 @@ export class GameUtil {
       return dirPath.replace(App.getPath('userData'), GamePathMark.UserData);
     }
 
+    if (dirPath.indexOf(App.getPath('documents')) === 0) {
+      return dirPath.replace(App.getPath('documents'), GamePathMark.Document);
+    }
+
     return dirPath;
   }
 
@@ -82,6 +87,11 @@ export class GameUtil {
     if (dirPath.indexOf(GamePathMark.UserData) === 0) {
       return dirPath.replace(GamePathMark.UserData, App.getPath('userData'));
     }
+
+    if (dirPath.indexOf(GamePathMark.Document) === 0) {
+      return dirPath.replace(GamePathMark.Document, App.getPath('documents'));
+    }
+
     return dirPath;
   }
 }
@@ -108,6 +118,15 @@ class Utility {
   static arrayDiff<T>(pre: T[], now: T[]) {
     const newEle = now.filter(v => !pre.includes(v));
     const delEle = pre.filter(v => !now.includes(v));
+    return {
+      new: newEle,
+      del: delEle,
+    };
+  }
+
+  static arrayDiffByMatcher<T>(pre: T[], now: T[], matcher: (a: T, b: T[]) => boolean) {
+    const newEle = now.filter(v => matcher(v, pre));
+    const delEle = pre.filter(v => matcher(v, now));
     return {
       new: newEle,
       del: delEle,
@@ -329,4 +348,31 @@ class ArrayMap<K, T> extends Map<K, T[]> {
   }
 }
 
-export {Utility, NodeTime, UnixTime, ArrayMap, GameValidators};
+class SteamUtility {
+  static async findSteamInfo(dirPath: string) {
+    const steamRoot = this.getSteamappsPath(dirPath);
+    if (!steamRoot)
+      return null;
+
+    const acf = await workerAPI.fs.findSteamAcf({steamRoot, name: PathUtil.basename(dirPath)});
+    if (!acf) {
+      return null;
+    }
+    return {
+      appid: acf.AppState.appid,
+      name: acf.AppState.name,
+    };
+  }
+
+  static getSteamappsPath(fullPath: string): string | null {
+    const regex = /^(.*?[\\/]steamapps)/i;
+    const match = fullPath.match(regex);
+
+    if (match) {
+        return match[1];
+    }
+    return null;
+  }
+}
+
+export {Utility, NodeTime, UnixTime, ArrayMap, GameValidators, SteamUtility};

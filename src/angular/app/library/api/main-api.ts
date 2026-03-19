@@ -44,6 +44,10 @@ export class MainAPI {
   get window() {
     return this.client_.createApi<WindowHandler>('window');
   }
+
+  get client() {
+    return this.client_;
+  }
 }
 
 export const mainAPI = MainAPI.getInstance();

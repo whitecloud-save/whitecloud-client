@@ -156,7 +156,8 @@ export class UserService {
 
   private disconnectLogout() {
     this.userInfo = null;
-    this.logged.next(false);
+    if (!this.logged.getValue())
+      this.logged.next(false);
   }
 
   isOnline() {

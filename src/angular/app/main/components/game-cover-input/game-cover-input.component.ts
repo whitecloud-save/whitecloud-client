@@ -31,6 +31,9 @@ export class GameCoverInputComponent implements ControlValueAccessor {
   @Input()
   gameId!: string;
 
+  @Input()
+  steamAppId?: string;
+
   constructor(
     public serverService: ServerService
   ) {

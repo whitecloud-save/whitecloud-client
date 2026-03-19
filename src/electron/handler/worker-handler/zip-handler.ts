@@ -1,4 +1,4 @@
-import {Route} from '@sora-soft/framework';
+import {Connector, Notify, Request, Route} from '@sora-soft/framework';
 import fs from 'fs';
 import path from 'path';
 import {mkdirp} from 'mkdirp';
@@ -6,7 +6,7 @@ import * as fflate from 'fflate';
 
 export class ZipHandler extends Route {
   @Route.method
-  async createZipFromDirectory(args: {dirPath: string; zipPath: string}) {
+  async createZipFromDirectory(args: {dirPath: string; zipPath: string},  request: Request, connector: Connector) {
     const {dirPath, zipPath} = args;
 
     await mkdirp(path.dirname(zipPath));
@@ -29,6 +29,26 @@ export class ZipHandler extends Route {
     };
 
     const entries = await fs.promises.readdir(dirPath, {withFileTypes: true, recursive: true});
+    let handled = 0;
+
+    const notifyCallback = () => {
+      const callbackId = request.getHeader('callback-id');
+      if (callbackId) {
+        const notify = new Notify({
+          method: 'rpc-callback',
+          service: 'electron',
+          headers: {
+            'callback-id': callbackId,
+          },
+          payload: {
+            total: entries.length,
+            handled,
+          },
+        });
+        connector.sendNotify(notify);
+      }
+    }
+
     for (const entry of entries) {
       const fullPath = path.join(entry.parentPath, entry.name);
       const zipEntryPath = path.relative(dirPath, fullPath);
@@ -42,10 +62,16 @@ export class ZipHandler extends Route {
           fileStream.on('data', (chunk) => zipFile.push(chunk as Buffer));
           fileStream.on('end', () => {
             zipFile.push(new Uint8Array(0), true); // 标记该文件结束
+
+            handled ++;
+            notifyCallback();
             resolve();
           });
           fileStream.on('error', reject);
         });
+      } else {
+        handled ++;
+        notifyCallback();
       }
     }
 

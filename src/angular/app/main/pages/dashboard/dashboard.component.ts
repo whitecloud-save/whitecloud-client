@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {GameService} from '../../../service/game.service';
 import {HeaderType, MainService} from '../../main.service';
 import {Game} from '../../../entity/game';
+import {mainAPI} from 'app/library/api/main-api';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,11 +23,7 @@ export class DashboardComponent {
   }
 
   drop(event: any) {
-
     this.gameService.swapGameOrder(this.enteredGame!, this.movingGame!);
-    // this.items[event.previousContainer.data.index] = event.container.data.item;
-    // this.items[event.container.data.index] = event.previousContainer.data.item;
-    // console.log(event);
     this.enteredGame = null;
     this.movingGame = null;
   }
@@ -43,4 +40,8 @@ export class DashboardComponent {
   isEmpty() {
     return !this.gameService.games.getValue().length && !this.gameService.remoteGames.getValue().length;
   }
+
+  // test() {
+  //   mainAPI.shell.startEtwMonitor([39032]);
+  // }
 }

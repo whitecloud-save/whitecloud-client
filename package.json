@@ -10,7 +10,8 @@
     "build:electron": "tsc --project src/electron/tsconfig.json && shx cp src/electron/package.json dist/electron/package.json",
     "build:preload": "tsc --project src/preload/tsconfig.json",
     "build:package": "electron-forge package",
-    "build:updater": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe /out:updater.exe scripts\\updater.cs",
+    "build:updater": "dotnet publish cs/Updater/updater.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./exe/Updater",
+    "build:etw-monitor": "dotnet publish cs/EtwMonitor/EtwMonitor.csproj -c Release -r win-x64 -o ./exe/etw",
     "build": "npm run build:electron && npm run build:angular && npm run build:preload && electron-forge package && node scripts/compute-asar-hash.js"
   },
   "main": "dist/electron/electron.js",
@@ -21,7 +22,8 @@
     "@ctrl/tinycolor": "^4.2.0",
     "@fortawesome/free-brands-svg-icons": "^7.2.0",
     "@sora-soft/framework": "^1.12.12",
-    "@whitecloud-save/binding-addon": "1.0.2",
+    "@vscode/sudo-prompt": "^9.3.2",
+    "@whitecloud-save/binding-addon": "1.0.3",
     "ali-oss": "^6.23.0",
     "axios": "^1.6.8",
     "chunk-data": "^0.1.0",
@@ -40,7 +42,8 @@
     "shx": "^0.4.0",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vdf-parser": "^1.2.1"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "^18.0.0",

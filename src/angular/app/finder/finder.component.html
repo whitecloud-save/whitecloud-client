@@ -1,0 +1,100 @@
+<div style="height: 100%;" nz-flex [nzVertical]="true">
+  <div style="padding: 5px 11px;">
+    <label nz-checkbox [formControl]="topWindowControl">窗口始终保持置顶</label>
+  </div>
+
+  <nz-collapse nzAccordion style="flex: 1; overflow: hidden;">
+    <nz-collapse-panel [nzHeader]="'提示'" [nzActive]="step == 1" [nzDisabled]="true" [class.active-panel]="step == 1">
+      <div class="panel-content">
+        <span>
+          将通过检测游戏进程写入文件的路径寻找游戏可能的存档位置，在这个过程中需要启动
+          <a (click)="openEtwAbout()">etw监控进程</a>，
+          该进程必须以管理员权限运行，所以启动过程会触发 UAC 窗口，该进程的源码可以通过
+          <a (click)="openEtwSource()">Github</a>
+          查看，请放心使用。
+        </span>
+        <br/>
+        <span>
+          请跟随后续步骤指引进行操作
+        </span>
+        <div style="margin-top: 20px;">
+          <button nz-button (click)="step = 2">下一步</button>
+        </div>
+      </div>
+    </nz-collapse-panel>
+    <nz-collapse-panel [nzHeader]="'准备存档'" [nzActive]="step == 2" [nzDisabled]="true" [class.active-panel]="step == 2">
+      <div class="panel-content">
+        <span>请打开游戏并进入存档页面，然后点击下一步</span>
+        <div style="display: flex; align-items: center; margin-top: 20px;">
+          <div style="width: 4px; height: 4px; border-radius: 50%; margin-left: 10px; margin-right: 5px;" [style.background-color]="gameStatusColor"></div>
+          @if(runningProcess.length) {
+            <span>游戏正在运行</span>
+          } @else {
+            <span style="color: #8c8c8c">尚未未检测到游戏进程</span>
+          }
+        </div>
+        <div style="margin-top: 20px;">
+          <button nz-button (click)="startGame()" style="margin-right: 10px;" nzType="primary" [disabled]="runningProcess.length > 0">启动游戏</button>
+          <button nz-button (click)="startMonitor()" [disabled]="runningProcess.length == 0">
+            <div style="display: flex; align-items: center;">
+              <img style="width: 12px; margin-right: 5px;" src="./assets/windows-admin.png"/> 下一步
+            </div>
+          </button>
+        </div>
+      </div>
+    </nz-collapse-panel>
+    <nz-collapse-panel [nzHeader]="'检测存档位置'" [nzActive]="step == 3" [nzDisabled]="true" [class.active-panel]="step == 3">
+      <div>
+        <div style="padding: 10px 20px">
+          @if (runningProcess.length) {
+            <span>请进行一次存档，然后退出游戏</span>
+          } @else {
+            <span>游戏的存档目录可能为：</span>
+          }
+        </div>
+        <div style="height: 100%; overflow: auto;">
+          @if(!ended) {
+            <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #8c8c8c">
+              <div>
+                <fa-icon style="margin-right: 10px;" [icon]="iconService.light.faLoader" animation="spin"></fa-icon>
+                <span>检测中，等待游戏进程退出</span>
+              </div>
+            </div>
+          } @else {
+            @if(savePathSelection.length == 0) {
+              <div style="padding: 10px 20px;">
+                <span style="color: #8c8c8c">未发现存档目录</span>
+              </div>
+            } @else {
+              @for (path of savePathSelection; track path) {
+                <div class="save-path" style="display: flex;" (click)="selectPath(path)">
+                  <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 5px;" nz-tooltip [nzTooltipTitle]="path">
+                    {{path}}
+                  </div>
+                  <div>
+                    <nz-button-group>
+                      <button nz-button nzType="default" nzSize="small" (click)="openFolder(path, $event)">
+                        <fa-icon [icon]="iconService.light.faFolder"></fa-icon>
+                      </button>
+                      <button nz-button nzType="default" nzSize="small" (click)="copy(path, $event)">
+                        @if (copied == path) {
+                          <fa-icon style="color: #52c41a" [icon]="iconService.solid.faCheck"></fa-icon>
+                        } @else {
+                          <fa-icon [icon]="iconService.light.faCopy"></fa-icon>
+                        }
+                      </button>
+                    </nz-button-group>
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+        <div style="padding: 10px 20px;">
+          <button nz-button (click)="exit()" nzType="primary" [disabled]="runningProcess.length > 0">退出</button>
+        </div>
+      </div>
+    </nz-collapse-panel>
+  </nz-collapse>
+</div>
+

@@ -1,6 +1,7 @@
-import {Route} from '@sora-soft/framework';
+import {Notify, Route} from '@sora-soft/framework';
 import {BrowserWindow} from 'electron';
 import {Manager} from '../../manager.js';
+import {pack} from 'msgpackr';
 
 export class WindowHandler extends Route {
   constructor(win: BrowserWindow, serve: boolean) {
@@ -9,7 +10,6 @@ export class WindowHandler extends Route {
     this.win_ = win;
   }
 
-  private gameGuideWindows_: Map<number, {uuid: string, win: BrowserWindow}> = new Map();
   private serve_: boolean;
   private win_: BrowserWindow;
 
@@ -20,15 +20,43 @@ export class WindowHandler extends Route {
   }
 
   @Route.method
-  async closeGameGuideWindow(windowId: number): Promise<void> {
-    const data = this.gameGuideWindows_.get(windowId);
-    if (data) {
-      data.win.close();
-    }
+  async closeGameGuideWindow(gameId: string) {
+    await Manager.closeGameGuideWindow(gameId);
+    return {};
+  }
+
+  @Route.method
+  async createSaveFinderWindow(body: {gamePath: string, exePath: string}) {
+    const id = await Manager.createSaveFinderWindow(body.gamePath, body.exePath, this.serve_);
+    return id;
+  }
+
+  @Route.method
+  async closeSaveFinderWindow(body: void) {
+    await Manager.closeSaveFinderWindow();
+    Manager.focusMain();
+    return {};
   }
 
   @Route.method
   async setWindowTop(top: boolean): Promise<void> {
     this.win_.setAlwaysOnTop(top);
+  }
+
+  @Route.method
+  async notifyToMain(body: {method: string, payload: unknown}) {
+    const connector = Manager.mainWindowConnector;
+    if (!connector)
+      throw new Error('main window channel not found');
+
+     const notify = new Notify({
+      method: body.method,
+      headers: {},
+      service: 'electron',
+      payload: body.payload,
+    });
+    connector.sendNotify(notify);
+
+    return {};
   }
 }

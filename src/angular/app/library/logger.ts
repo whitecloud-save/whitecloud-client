@@ -7,6 +7,10 @@ import {v4} from 'uuid';
 export class Logger {
   static async init() {
     this.version_ = await mainAPI.app.getVersion();
+    const isPackaged = await mainAPI.app.isPackaged();
+    if (isPackaged) {
+      this.disabled_ = true;
+    }
     const deviceId = localStorage.getItem('app:device');
     this.deviceId_ = deviceId || v4();
     localStorage.setItem('app:device', this.deviceId_);
@@ -31,6 +35,9 @@ export class Logger {
     if (!this.tracker_)
       return;
 
+    if (this.disabled_)
+      return;
+
     this.tracker_.send({
       event,
       version: this.version_,
@@ -46,4 +53,5 @@ export class Logger {
   private static version_: string;
   private static accountId_?: number;
   private static deviceId_?: string;
+  private static disabled_: boolean = false;
 }

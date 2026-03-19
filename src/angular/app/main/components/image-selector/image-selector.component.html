@@ -1,5 +1,15 @@
 <nz-segmented [nzOptions]="sourceOptions" [(ngModel)]="source" style="margin-bottom: 10px;"></nz-segmented>
 
+@if(source === 2) {
+  <div class="steam-image-selector">
+    <div class="image-container" [ngStyle]="{'background-image': 'url(' + value + ')'}">
+      <div class="image-mask selected">
+        <fa-icon [icon]="iconService.solid.faCheck"></fa-icon>
+      </div>
+    </div>
+  </div>
+}
+
 @if(source === 0) {
   <div class="local-image-selector" (click)="openImageSelectDialog()">
     @if(!value) {

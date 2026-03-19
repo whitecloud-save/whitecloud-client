@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {GameImportService} from '../game-import.service';
+import {IconService} from 'app/service/icon.service';
 
 @Component({
   selector: 'app-game-exe-selector',
@@ -9,5 +10,6 @@ import {GameImportService} from '../game-import.service';
 export class GameExeSelectorComponent {
   constructor(
     public gameImportService: GameImportService,
+    public iconService: IconService,
   ) {}
 }

@@ -1,8 +1,6 @@
 import {Route} from '@sora-soft/framework';
-import {spawn} from 'child_process';
 import {app} from 'electron';
 import {hostname} from 'os';
-import path from 'path';
 import {Manager} from '../../manager.js';
 
 export class AppHandler extends Route {
@@ -34,7 +32,7 @@ export class AppHandler extends Route {
   }
 
   @Route.method
-  async isPackaged(): Promise<boolean> {
+  async isPackaged(body: void): Promise<boolean> {
     return app.isPackaged;
   }
 

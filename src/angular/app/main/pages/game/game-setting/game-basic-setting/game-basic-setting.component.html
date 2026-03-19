@@ -42,11 +42,16 @@
         <nz-option *ngFor="let exe of exeSelections" [nzValue]="exe" [nzLabel]="exe"></nz-option>
       </nz-select>
     </nz-form-control>
+    @if(game.isSteam) {
+      <div style="margin-left: 15px; display: flex; align-items: center; cursor: pointer;" nz-tooltip nzTooltipTitle="将通过 Steam 启动游戏">
+        <fa-icon [icon]="iconService.brands.faSteam" style="font-size: 18px;"></fa-icon>
+      </div>
+    }
   </nz-form-item>
   <nz-form-item>
     <nz-form-label [nzSpan]="6" nzFor="coverImgUrl">游戏封面</nz-form-label>
     <nz-form-control [nzSpan]="16">
-      <app-game-cover-input [searchKeyword]="game.name" [gameId]="game.id" formControlName="coverImgUrl"></app-game-cover-input>
+      <app-game-cover-input [searchKeyword]="game.name" [gameId]="game.id" formControlName="coverImgUrl" [steamAppId]="game.steamAppId"></app-game-cover-input>
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>

@@ -4,6 +4,11 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {IconService} from '../../../service/icon.service';
 import {mainAPI} from '../../../library/api/main-api';
 
+const FixedSourceOptions = [
+  {label: '本地图片', value: 'local'},
+  {label: '百度搜索', value: 'baidu'},
+]
+
 @Component({
   selector: 'app-image-selector',
   templateUrl: './image-selector.component.html',
@@ -18,12 +23,15 @@ import {mainAPI} from '../../../library/api/main-api';
 })
 export class ImageSelectorComponent implements ControlValueAccessor, OnInit {
   source_ = 0;
-  value: string | null = '';
+  value: string | null = null;
   disable = false;
   baiduResults = [] as string[];
 
   @Input()
   searchKeyWord = '';
+
+  @Input()
+  steamAppid?: string = undefined;
 
   get source() {
     return this.source_;
@@ -32,6 +40,10 @@ export class ImageSelectorComponent implements ControlValueAccessor, OnInit {
   set source(value: number) {
     this.source_ = value;
     this.value = null;
+
+    if (this.source_ === 2 && this.steamAppid) {
+      this.value = `https://steamcdn-a.akamaihd.net/steam/apps/${this.steamAppid}/header.jpg`;
+    }
     this.onChange(this.value);
   }
 
@@ -52,8 +64,7 @@ export class ImageSelectorComponent implements ControlValueAccessor, OnInit {
   }
 
   sourceOptions = [
-    {label: '本地图片', value: 'local'},
-    {label: '百度搜索', value: 'baidu'},
+    ...FixedSourceOptions
   ];
   searchPageIndex = 1;
 
@@ -64,6 +75,12 @@ export class ImageSelectorComponent implements ControlValueAccessor, OnInit {
 
   ngOnInit() {
     this.searchBaidu();
+    if (this.steamAppid) {
+      this.sourceOptions = [
+        ...FixedSourceOptions,
+        {label: 'steam', value: 'steam'},
+      ]
+    }
   }
 
   async searchBaidu() {

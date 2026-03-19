@@ -1,0 +1,41 @@
+.panel-content {
+  padding: 10px 20px;
+  line-height: 200%;
+}
+
+.save-path {
+  cursor: pointer;
+  padding: 10px 20px;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+::ng-deep {
+  .ant-collapse {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .ant-collapse-item {
+    display: flex;
+    flex-direction: column;
+    &.ant-collapse-item-active {
+      flex: 1;
+      overflow: hidden;
+      > .ant-collapse-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+    }
+  }
+  .ant-collapse-content > .ant-collapse-content-box {
+    padding: 0;
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+  }
+}

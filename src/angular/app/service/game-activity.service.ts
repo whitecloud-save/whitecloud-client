@@ -87,7 +87,6 @@ export class GameActivityService {
   async getCombinedActivities(gameId: string): Promise<GameActivity[]> {
     const activities = await this.getActivitiesByGameId(gameId);
     const historyList = await this.getGameHistoryByGameId(gameId);
-    console.log(historyList);
 
     const gameTimeActivities: GameTimeActivity[] = historyList.map(history => ({
       id: history.id,

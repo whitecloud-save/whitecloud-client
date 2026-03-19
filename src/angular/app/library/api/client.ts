@@ -89,9 +89,12 @@ export class Client {
 
   }
 
-  protected createNotifyObserver<T>(name: string): Observable<IRawReqPacket<T>> {
-    const subject = new Subject<IRawReqPacket<T>>();
-    this.notifyPool_.set(name, subject as Subject<IRawReqPacket<unknown>>);
+  createNotifyObserver<T>(name: string): Observable<IRawReqPacket<T>> {
+    const subject = this.notifyPool_.get(name) as Subject<IRawReqPacket<T>> || new Subject<IRawReqPacket<T>>();
+
+    if (!this.notifyPool_.has(name)) {
+      this.notifyPool_.set(name, subject as Subject<IRawReqPacket<unknown>>);
+    }
     const observable = new Observable<IRawReqPacket<T>>(observer => {
       const sub = subject.subscribe(observer);
       return () => {

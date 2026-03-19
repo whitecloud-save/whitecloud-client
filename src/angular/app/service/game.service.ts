@@ -24,6 +24,7 @@ export interface IImportGameParams {
   savePath: string;
   exeFile: string;
   coverImgUrl: string;
+  steamAppId?: string;
 }
 
 @Injectable({
@@ -314,10 +315,10 @@ export class GameService {
     const tmp = a.order;
     a.order = b.order;
     b.order = tmp;
-    await a.save();
-    await b.save();
     const games = this.games.getValue();
     this.games.next(games.sort((i, j) => j.order - i.order));
+    await a.save();
+    await b.save();
   }
 
   async init() {

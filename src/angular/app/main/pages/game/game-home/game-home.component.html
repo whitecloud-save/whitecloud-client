@@ -43,7 +43,7 @@
       </nz-space>
     </div>
     <nz-divider nzOrientation="left" nzText="操作" style="color: rgba(0,0,0,.26); font-size: 13px;margin-top: 30px;"></nz-divider>
-<div>
+    <div>
       <nz-space>
         <button *nzSpaceItem nz-button (click)="backupSave()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">备份当前存档</button>
         <button *nzSpaceItem nz-button (click)="game.openGameGuide()" [disabled]="(game.state | async) != GameState.Checked && (game.state | async) != GameState.Running">打开游戏攻略</button>

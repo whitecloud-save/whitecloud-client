@@ -1,6 +1,6 @@
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {CacheImage} from '../library/cache-image';
-import {App, GameUtil, UnixTime, Utility} from '../library/utility';
+import {App, GameUtil, SteamUtility, UnixTime, Utility} from '../library/utility';
 import {BaseError} from '../library/error/BaseError';
 import {ErrorCode} from '../library/error/ErrorCode';
 import {ProcessEventType, ProcessMonitorService} from '../service/process-monitor.service';
@@ -75,7 +75,9 @@ export class Game {
         exePath: this.exeFilePath,
         targetPath: target,
       });
-      this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
+      if (iconData) {
+        this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
+      }
     }
   }
 
@@ -177,7 +179,7 @@ export class Game {
     if (this.processOb_)
       this.processOb_.unsubscribe();
 
-    this.runningProcess_ = new Set(...this.processMonitorService_.getRunningProcess(this.gamePath));
+    this.runningProcess_ = new Set(...this.processMonitorService_.getRunningProcess(this.gamePath).map(p => p.exePath));
     const ob = this.processMonitorService_.registerObservable(this.gamePath);
     this.processOb_ = ob.subscribe((event) => {
       switch(event.type) {
@@ -245,7 +247,7 @@ export class Game {
     });
 
     if (this.db_.autoOpenGuide) {
-      await mainAPI.window.closeGameGuideWindow(this.guideWindowId_);
+      await mainAPI.window.closeGameGuideWindow(this.id);
     }
   }
 
@@ -290,17 +292,23 @@ export class Game {
   }
 
   async startGame() {
-    if (this.settingService_.useLE && this.extractSetting.LEProfile) {
-      workerAPI.process.spawn({
-        exe: this.settingService_.LEExePath,
-        params: ['-runas', this.extractSetting.LEProfile, this.exeFilePath]
-      });
+    if (this.isSteam) {
+      mainAPI.shell.openExternal(`steam://rungameid/${this.steamAppId}`);
     } else {
-      workerAPI.process.spawn({
-        exe: this.exeFilePath,
-        cwd: PathUtil.dirname(this.exeFilePath),
-      });
+      if (this.settingService_.useLE && this.extractSetting.LEProfile) {
+        workerAPI.process.spawn({
+          exe: this.settingService_.LEExePath,
+          params: ['-runas', this.extractSetting.LEProfile, this.exeFilePath],
+          cwd: PathUtil.dirname(this.exeFilePath),
+        });
+      } else {
+        workerAPI.process.spawn({
+          exe: this.exeFilePath,
+          cwd: PathUtil.dirname(this.exeFilePath),
+        });
+      }
     }
+
 
     if (this.db_.autoOpenGuide) {
       this.openGameGuide();
@@ -400,6 +408,7 @@ export class Game {
       const directoryHash = await Utility.calculateDirectoryHash(this.savePath);
       const currentSave = this.currentSave_;
       if (currentSave && directoryHash === currentSave.directoryHash && !force) {
+        this.checkState();
         return;
       }
 
@@ -455,7 +464,6 @@ export class Game {
 
       this.activityUpdate$.next(this.id);
     } catch (err) {
-      console.log(err);
       this.onError(err as BaseError);
       await this.gameActivityService_.createActivity(this.id, GameActivityType.SAVE_BACKUP_LOCAL_FAILED, {reason: (err as BaseError).code || (err as Error).message});
     }
@@ -493,6 +501,11 @@ export class Game {
     if (this.runningProcess_.size) {
       this.setState(GameState.Running);
       return;
+    }
+
+    const config = await SteamUtility.findSteamInfo(this.gamePath);
+    if (config) {
+      this.steamAppId_ = config.appid;
     }
 
     this.setState(GameState.Checked);
@@ -836,6 +849,14 @@ export class Game {
     return this.ossService_;
   }
 
+  get isSteam() {
+    return !!this.steamAppId_;
+  }
+
+  get steamAppId() {
+    return this.steamAppId_;
+  }
+
   private db_: LocalGameDB;
   private cloudSaveNum_: number;
   private enableCloudSave_: boolean;
@@ -849,6 +870,7 @@ export class Game {
   private error?: BaseError;
   private iconPath_?: string;
   private currentSave_: Save | null;
+  private steamAppId_?: string;
 
   private processMonitorService_: ProcessMonitorService;
   private settingService_: SettingService;
