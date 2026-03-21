@@ -15,7 +15,6 @@ export class SettingComponent {
   ) {}
 
   ngOnInit(): void {
-    console.log('on init')
     this.mainService.setHeader({
       type: HeaderType.Setting,
     });

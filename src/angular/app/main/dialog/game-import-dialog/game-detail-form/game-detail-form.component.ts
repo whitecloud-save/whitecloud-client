@@ -42,13 +42,12 @@ export class GameDetailFormComponent {
     if (!this.gameImportService.setting.exeFile)
       return;
 
-    const exePath = this.gameImportService.setting.exeFile.startsWith('steam://') ?
-      this.gameImportService.setting.exeFile :
-      PathUtil.join(this.gameImportService.setting.gamePath as string, this.gameImportService.setting.exeFile as string);
+    const exePath = PathUtil.join(this.gameImportService.setting.gamePath as string, this.gameImportService.setting.exeFile as string);
 
     await mainAPI.window.createSaveFinderWindow({
       gamePath: this.gameImportService.setting.gamePath as string,
       exePath,
+      steamAppId: this.gameImportService.steamInfo?.appid,
     })
   }
 }

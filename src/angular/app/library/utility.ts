@@ -104,7 +104,6 @@ class Utility {
   static resizeObservable(elem: Element) {
     return new Observable(subscriber => {
       const ro = new ResizeObserver(entries => {
-        console.log('resize');
         subscriber.next(entries);
       });
 

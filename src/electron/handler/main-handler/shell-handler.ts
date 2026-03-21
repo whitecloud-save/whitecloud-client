@@ -16,7 +16,6 @@ export class ShellHandler extends Route {
   @Route.method
   async startEtwMonitor(pids: number[], request: Request, connector: Connector) {
     await EtwManager.startMonitor(pids, (file) => {
-      console.log(file);
       const callbackId = request.getHeader('callback-id');
       if (callbackId) {
         const notify = new Notify({

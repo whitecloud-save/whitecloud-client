@@ -26,8 +26,8 @@ export class WindowHandler extends Route {
   }
 
   @Route.method
-  async createSaveFinderWindow(body: {gamePath: string, exePath: string}) {
-    const id = await Manager.createSaveFinderWindow(body.gamePath, body.exePath, this.serve_);
+  async createSaveFinderWindow(body: {gamePath: string, exePath: string, steamAppId?: string}) {
+    const id = await Manager.createSaveFinderWindow(body.gamePath, body.exePath, body.steamAppId, this.serve_);
     return id;
   }
 

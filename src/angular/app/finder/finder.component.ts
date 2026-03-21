@@ -2,10 +2,12 @@ import {Component, Inject, NgZone} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {mainAPI} from 'app/library/api/main-api';
 import {workerAPI} from 'app/library/api/worker-api';
+import {BaseError} from 'app/library/error/BaseError';
+import {ErrorCode} from 'app/library/error/ErrorCode';
 import {PathUtil} from 'app/library/path-util';
 import {IconService} from 'app/service/icon.service';
 import {ProcessEventType, ProcessMonitorService} from 'app/service/process-monitor.service';
-import {ExePath, GamePath} from 'main';
+import {ExePath, GamePath, SteamAppId} from 'main';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {NzModalService} from 'ng-zorro-antd/modal';
 import {debounceTime, interval} from 'rxjs';
@@ -27,6 +29,7 @@ export class FinderComponent {
   constructor(
     @Inject(GamePath) public gamePath: string,
     @Inject(ExePath) public exePath: string,
+    @Inject(SteamAppId) public steamAppId: string | undefined,
     public iconService: IconService,
     private processMonitorService: ProcessMonitorService,
     private messageService: NzMessageService,
@@ -68,7 +71,8 @@ export class FinderComponent {
     for (const file of [...this.attachedSavePathSet]) {
       try {
         const real = await workerAPI.fs.realpath(PathUtil.dirname(file));
-        realPath.add(real);
+        if (real !== this.gamePath)
+          realPath.add(real);
       } catch (err) {
         console.log(err);
       }
@@ -94,39 +98,34 @@ export class FinderComponent {
   }
 
   startGame() {
-    console.log(this.exePath);
-    if (this.exePath.startsWith('steam://')) {
-      mainAPI.shell.openExternal(this.exePath);
+    if (this.steamAppId) {
+      mainAPI.shell.openExternal(`steam://rungameid/${this.steamAppId}`)
     } else {
       workerAPI.process.spawn({
         exe: this.exePath,
         cwd: PathUtil.dirname(this.exePath),
       });
     }
-
   }
 
-  // async checkProcesses() {
-  //   const list = await workerAPI.process.listProcesses();
-  //   this.runningProcess = list.filter(process => {
-  //     return process.exePath.indexOf(this.gamePath) === 0;
-  //   });
-  // }
-
   async startMonitor() {
-    await mainAPI.shell.startEtwMonitor(this.runningProcess.map(p => p.pid), (notify: {file: string}) => {
-      this.zone.run(async () => {
-        this.attachedSavePathSet.add(notify.file);
-        // try {
-        //   const realpath = await workerAPI.fs.realpath(PathUtil.dirname(notify.file));
-        //   this.attachedSavePathSet.add(realpath);
-        //   console.log(realpath);
-        // } catch (err) {
-        //   console.log(err);
-        // }
-      })
-    });
-    this.step = 3;
+    try {
+      await mainAPI.shell.startEtwMonitor(this.runningProcess.map(p => p.pid), (notify: {file: string}) => {
+        this.zone.run(async () => {
+          this.attachedSavePathSet.add(notify.file);
+        })
+      });
+      this.step = 3;
+    } catch (err) {
+      if (err instanceof BaseError) {
+        if (err.code === ErrorCode.ERR_NEED_ADMIN) {
+          this.messageService.error('需要同意 UAC 授权请求才能进行下一步');
+          this.step = 1;
+        }
+      }
+      throw err;
+      // this.messageService.error(err.message);
+    }
   }
 
   openFolder(path: string, event: Event) {

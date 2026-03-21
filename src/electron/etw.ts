@@ -4,6 +4,7 @@ import path from 'path';
 import readline from 'readline';
 import fs from 'fs';
 import sudo from '@vscode/sudo-prompt';
+import {ExError} from '@sora-soft/framework';
 
 const PIPE_NAME = '\\\\.\\pipe\\GameSaveMonitorPipe';
 export class EtwManager {
@@ -17,10 +18,11 @@ export class EtwManager {
       name: 'Whitecloud',
     };
 
-    const result = await new Promise<{server: net.Server, stream: net.Socket}>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const filePathSet = new Set();
 
-      const server = net.createServer((stream) => {
+      this.server_ = net.createServer((stream) => {
+        this.stream_ = stream;
         console.log('ETW 探针已成功连接到管道！');
 
         const rl = readline.createInterface({
@@ -52,34 +54,33 @@ export class EtwManager {
           this.closeMonitor();
         });
 
-        resolve({
-          server,
-          stream,
-        });
+        resolve();
       });
 
-      server.listen(PIPE_NAME, () => {
+      this.server_.listen(PIPE_NAME, () => {
         console.log(`正在监听管道: ${PIPE_NAME}`);
         sudo.exec(`${etwExe} ${process.pid} ${PIPE_NAME} ${pids.join(' ')}`, options, (err, stdout, stderr) => {
           if (err) {
             console.log(err);
+            if (err.message === 'User did not grant permission.') {
+              err = new ExError('ERR_NEED_ADMIN', 'AdminError', 'User did not grant permission.');
+            }
             reject(err);
             this.closeMonitor();
           }
         });
       });
     });
-
-    this.server_ = result.server;
-    this.stream_ = result.stream;
   }
 
   static async closeMonitor() {
+    console.log('close monitor');
     if (this.stream_ && !this.stream_.closed) {
       this.stream_.write('close\r\n');
     }
 
     if (this.server_ && this.server_.listening) {
+      console.log('close server');
       this.server_.close();
     }
 

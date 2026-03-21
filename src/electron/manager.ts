@@ -120,7 +120,6 @@ export class Manager {
       const workerChannel = new MessageChannelMain();
       win!.webContents.postMessage('worker-port-init', null, [workerChannel.port1]);
 
-      console.log(process.execPath);
       this.worker_.postMessage({
         command: 'init-port',
         dbPath: path.join(app.isPackaged ? path.dirname(process.execPath) : app.getAppPath(), 'data', 'db.sqlite')
@@ -250,7 +249,7 @@ export class Manager {
     win.close();
   }
 
-  static async createSaveFinderWindow(gamePath: string, exePath: string, serve: boolean) {
+  static async createSaveFinderWindow(gamePath: string, exePath: string, steamAppId: string | undefined, serve: boolean) {
     if (this.saveFinderWindow_)
       throw new Error('duplicate window');
 
@@ -324,7 +323,7 @@ export class Manager {
         mainChannel.port2,
         MessageRoute.callback({
           dialog: new DialogHandler(),
-          app:  new AppHandler(win!.id, 'finder', {gamePath, exePath}),
+          app:  new AppHandler(win!.id, 'finder', {gamePath, exePath, steamAppId}),
           window: new WindowHandler(win, serve),
           shell: new ShellHandler(),
           menu: new MenuHandler(),

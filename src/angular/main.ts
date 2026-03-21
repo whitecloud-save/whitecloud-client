@@ -14,6 +14,7 @@ if (APP_CONFIG.production) {
 export const GuideGameId = Symbol('guid-game-id');
 export const GamePath = Symbol('game-path');
 export const ExePath = Symbol('exe-path');
+export const SteamAppId = Symbol('steam-appid');
 
 (async () => {
   const value = await mainAPI.app.startApplication();
@@ -42,11 +43,12 @@ export const ExePath = Symbol('exe-path');
       break;
     }
     case 'finder':
-      const data = value.data as {gamePath: string, exePath: string};
+      const data = value.data as {gamePath: string, exePath: string, steamAppId: string};
       platformBrowserDynamic(
         [
           {provide: GamePath, useValue: data.gamePath},
           {provide: ExePath, useValue: data.exePath},
+          {provide: SteamAppId, useValue: data.steamAppId},
         ]
       )
         .bootstrapModule(FinderModule, {

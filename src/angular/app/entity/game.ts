@@ -474,7 +474,6 @@ export class Game {
     const iconPath = PathUtil.join(this.backupSavePath, 'icon.png');
     const exists = await workerAPI.fs.exists(iconPath);
     if (exists) {
-      console.log('read icon');
       const iconData = await workerAPI.fs.readFile(iconPath);
       this.iconPath_ = `data:image/png;base64,${Base64.fromUint8Array(iconData)}`;
     } else {

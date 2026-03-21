@@ -86,7 +86,6 @@ export class GameSaveSettingComponent implements OnInit {
     this.serverForm.valueChanges.pipe(
       debounceTime(1000)
     ).subscribe(async (value) => {
-      console.log('game save');
       this.game.enableCloudSave = value.enableCloudSave as boolean;
       this.game.cloudSaveNum = value.cloudSaveNum as number;
       await this.game.save();

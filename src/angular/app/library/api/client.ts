@@ -1,6 +1,7 @@
 import {pack, unpack} from 'msgpackr';
 import {Waiter} from '../waiter';
 import {Observable, Subject} from 'rxjs';
+import {BaseError} from '../error/BaseError';
 
 export type IRawNetPacket<T = unknown> = IRawReqPacket<T> | IRawResPacket<unknown> | IRawOperationPacket;
 
@@ -160,7 +161,7 @@ export class Client {
     this.waiter_.remove(rpcId);
 
     if (message.payload.error) {
-      const error = new Error(message.payload.error.message);
+      const error = new BaseError(message.payload.error.code, message.payload.error.message);
       waiter.reject(error);
     } else {
       waiter.resolve(message.payload.result);
