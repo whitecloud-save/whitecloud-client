@@ -1,4 +1,4 @@
-import {Component, ErrorHandler, inject} from '@angular/core';
+import {Component, ErrorHandler, inject, OnDestroy} from '@angular/core';
 import {NZ_MODAL_DATA, NzModalRef} from 'ng-zorro-antd/modal';
 import {RemoteGame} from '../../../entity/remote-game';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
@@ -7,13 +7,16 @@ import {PathUtil} from '../../../library/path-util';
 import {NzMessageService} from 'ng-zorro-antd/message';
 import {GameService} from '../../../service/game.service';
 import {mainAPI} from '../../../library/api/main-api';
+import {workerAPI} from 'app/library/api/worker-api';
+import {SteamUtility} from 'app/library/utility';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-sync-remote-game-dialog',
   templateUrl: './sync-remote-game-dialog.component.html',
   styleUrl: './sync-remote-game-dialog.component.scss',
 })
-export class SyncRemoteGameDialogComponent {
+export class SyncRemoteGameDialogComponent implements OnDestroy {
 
   gameForm: FormGroup<{
     exePath: FormControl<string>;
@@ -22,6 +25,7 @@ export class SyncRemoteGameDialogComponent {
 
   readonly ref = inject(NzModalRef);
   readonly nzModalData: {game: RemoteGame} = inject(NZ_MODAL_DATA);
+  selectGameSavePathSub: Subscription;
 
   constructor(
     public iconService: IconService,
@@ -33,6 +37,17 @@ export class SyncRemoteGameDialogComponent {
       exePath: new FormControl('', [Validators.required]) as FormControl<string>,
       savePath: new FormControl(this.nzModalData.game.savePath, [Validators.required]) as FormControl<string>,
     });
+
+    // mainAPI.client.createNotifyObserver()
+    this.selectGameSavePathSub = mainAPI.client.createNotifyObserver('select-game-save-path').subscribe((notify) => {
+      this.gameForm.patchValue({
+        savePath: notify.payload as string,
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.selectGameSavePathSub.unsubscribe();
   }
 
   async openGamePathDialog() {
@@ -60,6 +75,28 @@ export class SyncRemoteGameDialogComponent {
     this.gameForm.patchValue({
       exePath: filePath,
     });
+  }
+
+  async openFinderWindow() {
+    if (!this.gameForm.value.exePath) {
+      this.message.error('需要先选择启动文件');
+      return;
+    }
+
+    const exists = await workerAPI.fs.exists(this.gameForm.value.exePath);
+    if (!exists) {
+      this.message.error('启动文件未找到');
+      return;
+    }
+
+    const gamePath = PathUtil.dirname(this.gameForm.value.exePath);
+    const steamInfo = await SteamUtility.findSteamInfo(gamePath);
+
+    await mainAPI.window.createSaveFinderWindow({
+      gamePath,
+      exePath: this.gameForm.value.exePath,
+      steamAppId: steamInfo?.appid,
+    })
   }
 
   async openSavePathDialog() {

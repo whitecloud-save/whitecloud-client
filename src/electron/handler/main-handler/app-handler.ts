@@ -52,6 +52,7 @@ export class AppHandler extends Route {
       appData: app.getPath('appData'),
       userData: app.getPath('userData'),
       documents: app.getPath('documents'),
+      home: app.getPath('home'),
       cwd: process.cwd(),
     };
 

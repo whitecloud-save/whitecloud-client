@@ -1,7 +1,6 @@
 import {Notify, Route} from '@sora-soft/framework';
 import {BrowserWindow} from 'electron';
 import {Manager} from '../../manager.js';
-import {pack} from 'msgpackr';
 
 export class WindowHandler extends Route {
   constructor(win: BrowserWindow, serve: boolean) {

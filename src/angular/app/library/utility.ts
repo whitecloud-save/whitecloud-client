@@ -8,8 +8,8 @@ import {workerAPI} from './api/worker-api';
 export enum GamePathMark {
   GameRoot = '$GAME_ROOT',
   AppPath = '$APP_PATH',
-  UserData = '$USER_DATA',
   Document = '$Document',
+  Home = '$Home',
 }
 
 export interface ISystemPathSetting {
@@ -17,6 +17,7 @@ export interface ISystemPathSetting {
   userData: string,
   documents: string,
   cwd: string;
+  home: string;
 }
 
 export class App {
@@ -25,7 +26,7 @@ export class App {
     this.hostname_ = hostname;
   }
 
-  static getPath(p: 'appData' | 'userData' | 'documents') {
+  static getPath(p: 'appData' | 'userData' | 'documents' | 'home') {
     switch(p) {
       case 'appData':
         return this.systemPath_.appData;
@@ -33,6 +34,8 @@ export class App {
         return this.systemPath_.userData;
       case 'documents':
         return this.systemPath_.documents;
+      case 'home':
+        return this.systemPath_.home;
     }
   }
 
@@ -61,12 +64,12 @@ export class GameUtil {
       return dirPath.replace(App.getPath('appData'), GamePathMark.AppPath);
     }
 
-    if (dirPath.indexOf(App.getPath('userData')) === 0) {
-      return dirPath.replace(App.getPath('userData'), GamePathMark.UserData);
-    }
-
     if (dirPath.indexOf(App.getPath('documents')) === 0) {
       return dirPath.replace(App.getPath('documents'), GamePathMark.Document);
+    }
+
+    if (dirPath.indexOf(App.getPath('home')) === 0) {
+      return dirPath.replace(App.getPath('home'), GamePathMark.Home);
     }
 
     return dirPath;
@@ -84,8 +87,8 @@ export class GameUtil {
       return dirPath.replace(GamePathMark.AppPath, App.getPath('appData'));
     }
 
-    if (dirPath.indexOf(GamePathMark.UserData) === 0) {
-      return dirPath.replace(GamePathMark.UserData, App.getPath('userData'));
+    if (dirPath.indexOf(GamePathMark.Home) === 0) {
+      return dirPath.replace(GamePathMark.Home, App.getPath('home'));
     }
 
     if (dirPath.indexOf(GamePathMark.Document) === 0) {
