@@ -81,6 +81,8 @@ export class FinderComponent {
     this.savePathSelection = [...realPath];
     const commonParentDirs = PathUtil.findImmediateCommonParents([...realPath]);
     for (const dir of commonParentDirs) {
+      if (this.savePathSelection.includes(dir))
+        continue;
       this.savePathSelection.unshift(dir);
     }
 
