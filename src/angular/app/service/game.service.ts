@@ -332,5 +332,7 @@ export class GameService {
       index--;
       this.addDBGame(db);
     }
+
+    this.syncGameList();
   }
 }
