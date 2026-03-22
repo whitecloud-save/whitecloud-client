@@ -265,6 +265,11 @@ export class GameService {
       this.gameActivityService,
     );
     this.addGame(game);
+
+    const remote = this.remoteGames.getValue().find(g => g.id === game.id);
+    if (remote) {
+      this.removeRemoteGame(remote);
+    }
   }
 
   addGame(game: Game) {
@@ -292,14 +297,11 @@ export class GameService {
     this.games.next(pre.filter(g => g !== game));
     game.removeFromLocal();
     this.syncGameList();
-
-    Logger.addLog('remove-local-game', {id: game.id, name: game.name});
   }
 
   removeRemoteGame(game: RemoteGame) {
     const pre = this.remoteGames.getValue();
     this.remoteGames.next(pre.filter(g => g !== game));
-    Logger.addLog('remove-remote-game', {id: game.id, name: game.name});
   }
 
   syncRemoveRemoteGame(game: RemoteGame) {
@@ -332,7 +334,5 @@ export class GameService {
       index--;
       this.addDBGame(db);
     }
-
-    this.syncGameList();
   }
 }
