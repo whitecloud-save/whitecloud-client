@@ -12,7 +12,7 @@
     "build:package": "electron-forge package",
     "build:updater": "dotnet publish cs/Updater/updater.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./exe/Updater",
     "build:etw-monitor": "dotnet publish cs/EtwMonitor/EtwMonitor.csproj -c Release -r win-x64 -o ./exe/etw",
-    "build": "npm run build:electron && npm run build:angular && npm run build:preload && electron-forge package && node scripts/compute-asar-hash.js"
+    "build": "npm run build:electron && npm run build:angular && npm run build:preload && electron-forge package && node scripts/compute-asar-hash.js && powershell -Command \"Compress-Archive -Path out/whitecloud-win32-x64/* -DestinationPath out/whitecloud-win32-x64.zip -Force\""
   },
   "main": "dist/electron/electron.js",
   "type": "module",
