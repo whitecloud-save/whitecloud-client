@@ -8,7 +8,7 @@ export class Logger {
   static async init() {
     this.version_ = await mainAPI.app.getVersion();
     const isPackaged = await mainAPI.app.isPackaged();
-    if (isPackaged) {
+    if (!isPackaged) {
       this.disabled_ = true;
     }
     const deviceId = localStorage.getItem('app:device');
