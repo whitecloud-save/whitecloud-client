@@ -20,10 +20,8 @@ export class LoggerService {
       if (logged) {
         Logger.addLog('account-login', {
           vip: this.userService.getVipLevel(),
-          vipExpireTime: moment(this.userService.getVipExpireTime()).format('YYYY-MM-DD HH:mm:ss')
+          vipExpireTime: this.userService.isVip() ? moment(this.userService.getVipExpireTime()).format('YYYY-MM-DD HH:mm:ss') : null,
         });
-      } else {
-        Logger.addLog('account-logout', {});
       }
     });
 
