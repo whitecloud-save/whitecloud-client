@@ -1,6 +1,6 @@
 {
   "name": "whitecloud",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "scripts": {
     "dev": "npm-run-all -p electron:serve ng:serve",
     "start:electron": "npm run build:electron && electron . --serve",
