@@ -57,11 +57,11 @@ export class GameBasicSettingComponent implements OnInit {
 
     this.basicForm.valueChanges.subscribe(async (value) => {
       if (value.gamePath !== this.preGamePath && value.gamePath) {
+        this.preGamePath = value.gamePath;
         await this.updateExePathSelection(value.gamePath);
         this.basicForm.patchValue({
           exeFile: '',
-        });
-        this.preGamePath = value.gamePath;
+        }, {emitEvent: false});
       }
       if (!value.name)
         return;
@@ -90,16 +90,18 @@ export class GameBasicSettingComponent implements OnInit {
 
   async updateExePathSelection(dirPath: string) {
     this.exeSelections = [];
-    if (!workerAPI.fs.exists(dirPath))
+    if (!dirPath || !(await workerAPI.fs.exists(dirPath)))
       return;
-    const files = await workerAPI.fs.readdir(dirPath);
+    const files = await workerAPI.fs.readdir(dirPath).catch(() => null);
+    if (!files)
+      return;
 
     for (const file of files) {
       if (PathUtil.extname(file) !== '.exe')
         continue;
 
-      const stat = await workerAPI.fs.lstat(PathUtil.join(dirPath, file));
-      if (stat.isFile) {
+      const stat = await workerAPI.fs.lstat(PathUtil.join(dirPath, file)).catch(() => null);
+      if (stat?.isFile) {
         this.exeSelections.push(file);
       }
     }
